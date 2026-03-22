@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /settings
+Disallow: /login
+Sitemap: https://expenses.visionquest2020.net/sitemap.xml

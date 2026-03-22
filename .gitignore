@@ -1,0 +1,10 @@
+.env
+storage/logs/*
+storage/cache/*
+storage/sessions/*
+public/uploads/*
+vendor/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

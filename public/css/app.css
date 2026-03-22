@@ -1,0 +1,539 @@
+/* ==========================================================================
+   MyExpenses — Application Stylesheet
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+    --color-primary:       #4e73df;
+    --color-primary-dark:  #3a56b0;
+    --color-success:       #1cc88a;
+    --color-danger:        #e74a3b;
+    --color-warning:       #f6c23e;
+    --color-info:          #36b9cc;
+
+    --sidebar-bg:          #1a1c2e;
+    --sidebar-hover:       #2d3154;
+    --sidebar-width:       250px;
+    --sidebar-text:        #b7b9cc;
+    --sidebar-text-active: #ffffff;
+    --sidebar-accent:      #4e73df;
+
+    --body-bg:             #f8f9fc;
+    --text-color:          #5a5c69;
+    --heading-color:       #3a3b45;
+
+    --card-shadow:         0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.09);
+    --card-border:         #e3e6f0;
+
+    --topbar-height:       60px;
+    --transition-speed:    0.2s;
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.925rem;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--heading-color);
+    font-weight: 600;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-speed);
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar
+   -------------------------------------------------------------------------- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--sidebar-bg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: transform var(--transition-speed) ease;
+}
+
+/* Brand */
+.sidebar-brand {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sidebar-brand-link:hover {
+    color: #ffffff;
+}
+
+.sidebar-brand-link i {
+    font-size: 1.4rem;
+    color: var(--sidebar-accent);
+}
+
+/* Nav list */
+.sidebar-nav {
+    list-style: none;
+    margin: 0;
+    padding: 0.75rem 0;
+    flex: 1;
+}
+
+.sidebar-nav-item {
+    margin: 0;
+}
+
+/* Nav links */
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1.25rem;
+    color: var(--sidebar-text);
+    font-size: 0.875rem;
+    border-left: 3px solid transparent;
+    transition: background-color var(--transition-speed),
+                color var(--transition-speed),
+                border-color var(--transition-speed);
+    text-decoration: none;
+}
+
+.sidebar-nav-link:hover {
+    background-color: var(--sidebar-hover);
+    color: #ffffff;
+}
+
+.sidebar-nav-link.active {
+    background-color: rgba(78, 115, 223, 0.12);
+    border-left-color: var(--sidebar-accent);
+    color: var(--sidebar-text-active);
+    font-weight: 500;
+}
+
+.sidebar-nav-link i {
+    font-size: 1rem;
+    width: 1.25rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Chevron rotation for collapsible sub-menus */
+.sidebar-chevron {
+    font-size: 0.7rem;
+    transition: transform var(--transition-speed);
+}
+
+.sidebar-nav-link[aria-expanded="true"] .sidebar-chevron {
+    transform: rotate(180deg);
+}
+
+/* Submenu */
+.sidebar-submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-submenu .sub-link {
+    padding-left: 3.25rem;
+    font-size: 0.825rem;
+}
+
+/* Separator */
+.sidebar-separator {
+    margin: 0.5rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+    padding: 0.85rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: auto;
+}
+
+.sidebar-user-name {
+    color: #ffffff;
+    font-size: 0.825rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-email {
+    color: var(--sidebar-text);
+    font-size: 0.725rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
+
+/* Language switcher */
+.sidebar-lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.lang-btn {
+    color: var(--sidebar-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.lang-btn:hover {
+    color: #ffffff;
+    background-color: var(--sidebar-hover);
+}
+
+.lang-btn.lang-active {
+    color: #ffffff;
+    background-color: var(--sidebar-accent);
+}
+
+.lang-divider {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.75rem;
+}
+
+/* Logout icon */
+.sidebar-logout {
+    color: var(--sidebar-text);
+    font-size: 1rem;
+    transition: color var(--transition-speed);
+}
+
+.sidebar-logout:hover {
+    color: var(--color-danger);
+}
+
+/* --------------------------------------------------------------------------
+   Main Content
+   -------------------------------------------------------------------------- */
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --------------------------------------------------------------------------
+   Top Bar
+   -------------------------------------------------------------------------- */
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--topbar-height);
+    padding: 0 1.5rem;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--card-border);
+    box-shadow: 0 0.15rem 0.5rem rgba(58, 59, 69, 0.04);
+}
+
+.top-bar-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--heading-color);
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.top-bar-search .form-control {
+    width: 220px;
+    border-radius: 0.35rem 0 0 0.35rem;
+}
+
+.top-bar-search .btn {
+    border-radius: 0 0.35rem 0.35rem 0;
+}
+
+/* Mobile sidebar toggle */
+.sidebar-toggle {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 110;
+    display: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: 0.35rem;
+    box-shadow: var(--card-shadow);
+}
+
+/* --------------------------------------------------------------------------
+   Content Wrapper
+   -------------------------------------------------------------------------- */
+.content-wrapper {
+    flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+.app-footer {
+    padding: 1rem 1.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #b7b9cc;
+    border-top: 1px solid var(--card-border);
+}
+
+/* --------------------------------------------------------------------------
+   Cards
+   -------------------------------------------------------------------------- */
+.card {
+    border: 1px solid var(--card-border);
+    border-radius: 0.35rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid var(--card-border);
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+.table {
+    font-size: 0.875rem;
+}
+
+.table thead th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--heading-color);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 0.85rem 0.75rem;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(78, 115, 223, 0.02);
+}
+
+.table-hover > tbody > tr:hover > * {
+    background-color: rgba(78, 115, 223, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   Forms
+   -------------------------------------------------------------------------- */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--heading-color);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+
+/* --------------------------------------------------------------------------
+   Flash Messages
+   -------------------------------------------------------------------------- */
+.flash-message {
+    animation: flashFadeIn 0.3s ease-out;
+}
+
+.flash-message.fade-out {
+    animation: flashFadeOut 0.5s ease-in forwards;
+}
+
+@keyframes flashFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes flashFadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-10px); }
+}
+
+/* --------------------------------------------------------------------------
+   Badges & Status Labels
+   -------------------------------------------------------------------------- */
+.badge-status {
+    font-size: 0.725rem;
+    font-weight: 600;
+    padding: 0.3em 0.65em;
+    border-radius: 0.25rem;
+}
+
+.badge-paid {
+    background-color: var(--color-success);
+    color: #ffffff;
+}
+
+.badge-pending {
+    background-color: var(--color-warning);
+    color: #1f2d3d;
+}
+
+.badge-overdue {
+    background-color: var(--color-danger);
+    color: #ffffff;
+}
+
+.badge-draft {
+    background-color: #858796;
+    color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Pagination Info
+   -------------------------------------------------------------------------- */
+.pagination-info {
+    font-size: 0.8rem;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive — Mobile (max-width: 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .top-bar {
+        padding-left: 3.5rem; /* room for hamburger */
+    }
+
+    .top-bar-search .form-control {
+        width: 140px;
+    }
+
+    /* Overlay behind open sidebar */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.45);
+        z-index: 99;
+        display: none;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Print Styles
+   -------------------------------------------------------------------------- */
+@media print {
+    .sidebar,
+    .sidebar-toggle,
+    .top-bar,
+    .app-footer,
+    .flash-message {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .content-wrapper {
+        padding: 0 !important;
+    }
+
+    body {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #cccccc;
+    }
+}
