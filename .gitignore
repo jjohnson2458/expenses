@@ -1,10 +1,17 @@
+project.txt
 .env
+.env.production
 storage/logs/*
+!storage/logs/.gitkeep
 storage/cache/*
+!storage/cache/.gitkeep
 storage/sessions/*
+!storage/sessions/.gitkeep
 public/uploads/*
 vendor/
 node_modules/
 *.log
 .DS_Store
 Thumbs.db
+.phpunit.result.cache
+*.stackdump

@@ -48,4 +48,12 @@ class Database
     {
         self::$instance = null;
     }
+
+    /**
+     * Inject a PDO instance (used by tests to share a transactional connection)
+     */
+    public static function setInstance(PDO $pdo): void
+    {
+        self::$instance = $pdo;
+    }
 }
