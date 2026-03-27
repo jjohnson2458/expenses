@@ -469,7 +469,7 @@
                     <h1>Your trusted<br><span class="highlight">accounting partner</span></h1>
                     <p class="lead">Snap a receipt, speak an expense, or forward an email. VQ Money categorizes everything, maps it to IRS tax lines, and generates your tax package automatically.</p>
                     <div class="d-flex align-items-center flex-wrap">
-                        <a href="{{ url('/login') }}" class="btn btn-cta">Get Started Free</a>
+                        <a href="{{ url('/register') }}" class="btn btn-cta">Get Started Free</a>
                         <a href="#features" class="btn-learn"><i class="bi bi-play-circle me-1"></i> See how it works</a>
                     </div>
                 </div>
@@ -640,7 +640,7 @@
                             <li><i class="bi bi-x-circle"></i> Tax mapping</li>
                             <li><i class="bi bi-x-circle"></i> Bank feeds</li>
                         </ul>
-                        <a href="{{ url('/login') }}" class="btn btn-plan btn-plan-outline">Start Free</a>
+                        <a href="{{ url('/register') }}" class="btn btn-plan btn-plan-outline">Start Free</a>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -658,7 +658,7 @@
                             <li><i class="bi bi-check-circle-fill"></i> Schedule C export</li>
                             <li><i class="bi bi-check-circle-fill"></i> Mileage tracker</li>
                         </ul>
-                        <a href="{{ url('/login') }}" class="btn btn-plan btn-plan-primary">Get Solo</a>
+                        <a href="{{ url('/register') }}" class="btn btn-plan btn-plan-primary">Get Solo</a>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -675,7 +675,7 @@
                             <li><i class="bi bi-check-circle-fill"></i> Multi-tag dimensions</li>
                             <li><i class="bi bi-check-circle-fill"></i> Budgets & forecasting</li>
                         </ul>
-                        <a href="{{ url('/login') }}" class="btn btn-plan btn-plan-outline">Get Pro</a>
+                        <a href="{{ url('/register') }}" class="btn btn-plan btn-plan-outline">Get Pro</a>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -692,7 +692,7 @@
                             <li><i class="bi bi-check-circle-fill"></i> Priority support</li>
                             <li><i class="bi bi-check-circle-fill"></i> API access</li>
                         </ul>
-                        <a href="{{ url('/login') }}" class="btn btn-plan btn-plan-outline">Contact Sales</a>
+                        <a href="{{ url('/register') }}" class="btn btn-plan btn-plan-outline">Contact Sales</a>
                     </div>
                 </div>
             </div>
@@ -733,7 +733,7 @@
         <div class="container">
             <h2>Never dread tax season again.</h2>
             <p>Start tracking expenses for free. Upgrade when you're ready for the full tax package.</p>
-            <a href="{{ url('/login') }}" class="btn btn-cta-white">Get Started Free</a>
+            <a href="{{ url('/register') }}" class="btn btn-cta-white">Get Started Free</a>
         </div>
     </section>
 

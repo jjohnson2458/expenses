@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - VQ Money</title>
+    <title>Register - VQ Money</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
@@ -18,13 +18,13 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        .login-container {
+        .register-container {
             width: 100%;
             max-width: 420px;
             padding: 1rem;
         }
 
-        .login-card {
+        .register-card {
             background: #fff;
             border-radius: 1rem;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -32,39 +32,37 @@
             text-align: center;
         }
 
-        .login-icon {
+        .register-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #4e73df, #224abe);
+            background: linear-gradient(135deg, #1cc88a, #17a673);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 1.25rem;
-            box-shadow: 0 8px 25px rgba(78,115,223,0.4);
+            box-shadow: 0 8px 25px rgba(28,200,138,0.4);
         }
 
-        .login-icon .bi {
+        .register-icon .bi {
             font-size: 2rem;
             color: #fff;
         }
 
-        .login-card h1 {
+        .register-card h1 {
             font-size: 1.75rem;
             font-weight: 700;
             color: #1a1c2e;
             margin-bottom: 0.25rem;
         }
 
-        .login-card .subtitle {
+        .register-card .subtitle {
             color: #858796;
             font-size: 0.9rem;
             margin-bottom: 2rem;
         }
 
-        .form-floating {
-            text-align: left;
-        }
+        .form-floating { text-align: left; }
 
         .form-floating .bi {
             position: absolute;
@@ -83,12 +81,12 @@
         }
 
         .form-floating .form-control:focus {
-            border-color: #4e73df;
-            box-shadow: 0 0 0 0.2rem rgba(78,115,223,0.25);
+            border-color: #1cc88a;
+            box-shadow: 0 0 0 0.2rem rgba(28,200,138,0.25);
         }
 
-        .btn-login {
-            background: linear-gradient(135deg, #4e73df, #224abe);
+        .btn-register {
+            background: linear-gradient(135deg, #1cc88a, #17a673);
             border: none;
             border-radius: 0.5rem;
             padding: 0.75rem;
@@ -99,14 +97,28 @@
             transition: all 0.3s;
         }
 
-        .btn-login:hover {
-            background: linear-gradient(135deg, #224abe, #1a3a9e);
+        .btn-register:hover {
+            background: linear-gradient(135deg, #17a673, #128a56);
             transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(78,115,223,0.4);
+            box-shadow: 0 4px 15px rgba(28,200,138,0.4);
             color: #fff;
         }
 
-        .login-footer {
+        .login-link {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #858796;
+        }
+
+        .login-link a {
+            color: #4e73df;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover { text-decoration: underline; }
+
+        .register-footer {
             margin-top: 2rem;
             color: rgba(255,255,255,0.4);
             font-size: 0.8rem;
@@ -120,13 +132,13 @@
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-icon">
-                <i class="bi bi-receipt"></i>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-icon">
+                <i class="bi bi-person-plus"></i>
             </div>
-            <h1>VQ Money</h1>
-            <p class="subtitle">Your trusted accounting partner</p>
+            <h1>Create Account</h1>
+            <p class="subtitle">Start tracking expenses for free</p>
 
             @if(session('flash'))
                 <div class="alert alert-{{ session('flash')['type'] ?? 'info' }} alert-dismissible fade show" role="alert">
@@ -143,43 +155,43 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ url('/login') }}">
+            <form method="POST" action="{{ url('/register') }}">
                 @csrf
 
                 <div class="form-floating mb-3 position-relative">
-                    <input type="email" class="form-control" id="email" name="email" placeholder="Email address" value="{{ old('email') }}" required autofocus>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Full name" value="{{ old('name') }}" required autofocus>
+                    <label for="name">Full name</label>
+                    <i class="bi bi-person"></i>
+                </div>
+
+                <div class="form-floating mb-3 position-relative">
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email address" value="{{ old('email') }}" required>
                     <label for="email">Email address</label>
                     <i class="bi bi-envelope"></i>
                 </div>
 
-                <div class="form-floating mb-4 position-relative">
+                <div class="form-floating mb-3 position-relative">
                     <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                     <label for="password">Password</label>
                     <i class="bi bi-lock"></i>
                 </div>
 
-                <button type="submit" class="btn btn-login">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                <div class="form-floating mb-4 position-relative">
+                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm password" required>
+                    <label for="password_confirmation">Confirm password</label>
+                    <i class="bi bi-lock-fill"></i>
+                </div>
+
+                <button type="submit" class="btn btn-register">
+                    <i class="bi bi-rocket-takeoff me-2"></i>Create Account
                 </button>
             </form>
 
-            <div style="margin-top: 1rem; text-align: right;">
-                <a href="{{ url('/forgot-password') }}" style="color: #4e73df; text-decoration: none; font-size: 0.85rem; font-weight: 500;">Forgot password?</a>
-            </div>
-
-            <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid #e3e6f0;">
-                <form method="POST" action="{{ url('/demo') }}" style="margin-bottom: 0.75rem;">
-                    @csrf
-                    <button type="submit" class="btn" style="width: 100%; border: 2px solid #1cc88a; color: #1cc88a; border-radius: 0.5rem; padding: 0.6rem; font-weight: 600; transition: all 0.3s;">
-                        <i class="bi bi-play-circle me-2"></i>Try Demo
-                    </button>
-                </form>
-                <p style="color: #858796; font-size: 0.9rem; margin: 0;">
-                    Don't have an account? <a href="{{ url('/register') }}" style="color: #4e73df; text-decoration: none; font-weight: 600;">Create one</a>
-                </p>
+            <div class="login-link">
+                Already have an account? <a href="{{ url('/login') }}">Sign in</a>
             </div>
         </div>
-        <div class="login-footer text-center">
+        <div class="register-footer text-center">
             &copy; 2026 VisionQuest Services LLC
         </div>
     </div>
