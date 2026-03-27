@@ -12,6 +12,7 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\BillingController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -37,6 +38,10 @@ Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->nam
 // Legal/Static Pages (no auth required)
 Route::get('/terms', [PageController::class, 'terms']);
 Route::get('/privacy', [PageController::class, 'privacy']);
+
+// Stripe Webhook
+Route::post('/stripe/webhook', [\Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook'])
+    ->name('cashier.webhook');
 
 // Language
 Route::get('/lang/{locale}', [LanguageController::class, 'switch']);
@@ -94,6 +99,14 @@ Route::middleware('auth')->group(function () {
     // Import
     Route::get('/import', [ImportController::class, 'index']);
     Route::post('/import', [ImportController::class, 'process']);
+
+    // Billing
+    Route::get('/billing', [BillingController::class, 'index']);
+    Route::post('/billing/subscribe', [BillingController::class, 'subscribe']);
+    Route::post('/billing/change', [BillingController::class, 'changePlan']);
+    Route::post('/billing/cancel', [BillingController::class, 'cancel']);
+    Route::post('/billing/resume', [BillingController::class, 'resume']);
+    Route::post('/billing/portal', [BillingController::class, 'portal']);
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index']);
