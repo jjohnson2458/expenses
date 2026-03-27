@@ -1,43 +1,20 @@
 <?php
-/**
- * MyExpenses - Application Entry Point
- *
- * @author J.J. Johnson <visionquest716@gmail.com>
- */
 
-// Autoloader
-spl_autoload_register(function (string $class) {
-    $prefix = 'App\\';
-    $baseDir = dirname(__DIR__) . '/app/';
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
-    if (str_starts_with($class, $prefix)) {
-        $relativeClass = substr($class, strlen($prefix));
-        $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
-        if (file_exists($file)) {
-            require $file;
-        }
-    }
-});
+define('LARAVEL_START', microtime(true));
 
-// Load config
-require_once dirname(__DIR__) . '/config/app.php';
-require_once BASE_PATH . '/app/Helpers/functions.php';
-
-// Start session
-session_start();
-
-// Generate CSRF token if not present
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
 }
 
-// Set default language
-if (empty($_SESSION['lang'])) {
-    $_SESSION['lang'] = DEFAULT_LANG;
-}
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
 
-// Load routes
-require_once BASE_PATH . '/routes/web.php';
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
 
-// Dispatch
-\App\Helpers\Router::dispatch();
+$app->handleRequest(Request::capture());

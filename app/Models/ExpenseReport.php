@@ -1,48 +1,66 @@
 <?php
-/**
- * ExpenseReport Model
- *
- * @author J.J. Johnson <visionquest716@gmail.com>
- */
 
 namespace App\Models;
 
-use App\Helpers\Database;
-use PDO;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExpenseReport extends Model
 {
-    protected string $table = 'expense_reports';
+    protected $table = 'expense_reports';
 
-    /**
-     * Get all reports with calculated totals from linked expenses
-     */
-    public function getWithTotals(): array
+    protected $fillable = [
+        'user_id',
+        'title',
+        'description',
+        'status',
+        'date_from',
+        'date_to',
+        'total_amount',
+    ];
+
+    protected function casts(): array
     {
-        $sql = "SELECT r.*, COALESCE(SUM(e.amount), 0) AS calculated_total, COUNT(e.id) AS expense_count
-                FROM {$this->table} r
-                LEFT JOIN expenses e ON e.report_id = r.id
-                GROUP BY r.id
-                ORDER BY r.created_at DESC";
-
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll();
+        return [
+            'total_amount' => 'decimal:2',
+            'date_from' => 'date',
+            'date_to' => 'date',
+        ];
     }
 
-    /**
-     * Recalculate and update the total_amount from linked expenses
-     */
-    public function updateTotal(int $id): void
+    public function user(): BelongsTo
     {
-        $sql = "UPDATE {$this->table}
-                SET total_amount = (
-                    SELECT COALESCE(SUM(amount), 0)
-                    FROM expenses
-                    WHERE report_id = :id
-                )
-                WHERE id = :report_id";
+        return $this->belongsTo(User::class);
+    }
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['id' => $id, 'report_id' => $id]);
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'report_id');
+    }
+
+    public static function getWithTotals(): array
+    {
+        return static::select('expense_reports.*')
+            ->selectSub(function ($q) {
+                $q->selectRaw('COALESCE(SUM(amount), 0)')
+                  ->from('expenses')
+                  ->whereColumn('expenses.report_id', 'expense_reports.id');
+            }, 'calculated_total')
+            ->selectSub(function ($q) {
+                $q->selectRaw('COUNT(*)')
+                  ->from('expenses')
+                  ->whereColumn('expenses.report_id', 'expense_reports.id');
+            }, 'expense_count')
+            ->orderByDesc('expense_reports.created_at')
+            ->get()
+            ->toArray();
+    }
+
+    public function updateTotal(): void
+    {
+        $this->update([
+            'total_amount' => $this->expenses()->sum('amount'),
+        ]);
     }
 }

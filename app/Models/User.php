@@ -1,44 +1,51 @@
 <?php
-/**
- * User Model
- *
- * @author J.J. Johnson <visionquest716@gmail.com>
- */
 
 namespace App\Models;
 
-use App\Helpers\Database;
-use PDO;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class User extends Model
+class User extends Authenticatable
 {
-    protected string $table = 'users';
+    use Notifiable;
 
-    /**
-     * Find a user by email address
-     */
-    public function findByEmail(string $email): ?array
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'lang',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
-        $result = $stmt->fetch();
-        return $result ?: null;
+        return [
+            'password' => 'hashed',
+        ];
     }
 
-    /**
-     * Verify a password against a hash
-     */
-    public function verifyPassword(string $password, string $hash): bool
+    public function expenses()
     {
-        return password_verify($password, $hash);
+        return $this->hasMany(Expense::class);
     }
 
-    /**
-     * Update a user's password
-     */
-    public function updatePassword(int $id, string $password): bool
+    public function reports()
     {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        return $this->update($id, ['password' => $hash]);
+        return $this->hasMany(ExpenseReport::class);
+    }
+
+    public function recurringExpenses()
+    {
+        return $this->hasMany(RecurringExpense::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }

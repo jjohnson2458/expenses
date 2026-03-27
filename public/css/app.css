@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MyExpenses — Application Stylesheet
+   VQ Money — Application Stylesheet
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -536,4 +536,47 @@ a:hover {
         box-shadow: none;
         border: 1px solid #cccccc;
     }
+}
+
+/* --------------------------------------------------------------------------
+   Color Themes
+   -------------------------------------------------------------------------- */
+
+/* Forest Green */
+[data-theme="forest"] {
+    --color-primary:       #2d8a4e;
+    --color-primary-dark:  #1e6b3a;
+    --sidebar-bg:          #1a2e1f;
+    --sidebar-hover:       #2a4a32;
+    --sidebar-accent:      #2d8a4e;
+}
+
+/* Midnight */
+[data-theme="midnight"] {
+    --color-primary:       #6366f1;
+    --color-primary-dark:  #4f46e5;
+    --sidebar-bg:          #0f172a;
+    --sidebar-hover:       #1e293b;
+    --sidebar-accent:      #6366f1;
+}
+
+/* Warm Gray */
+[data-theme="warm"] {
+    --color-primary:       #d97706;
+    --color-primary-dark:  #b45309;
+    --sidebar-bg:          #292524;
+    --sidebar-hover:       #3f3a36;
+    --sidebar-accent:      #d97706;
+}
+
+/* High Contrast */
+[data-theme="contrast"] {
+    --color-primary:       #0066cc;
+    --color-primary-dark:  #004c99;
+    --sidebar-bg:          #000000;
+    --sidebar-hover:       #1a1a1a;
+    --sidebar-accent:      #0066cc;
+    --body-bg:             #ffffff;
+    --text-color:          #1a1a1a;
+    --heading-color:       #000000;
 }

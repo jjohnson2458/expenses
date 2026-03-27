@@ -1,5 +1,5 @@
 /**
- * MyExpenses — Application JavaScript
+ * VQ Money — Application JavaScript
  */
 (function ($) {
     'use strict';
@@ -25,7 +25,7 @@
         ajax: function (options) {
             options = options || {};
             options.headers = Object.assign({}, options.headers, {
-                'X-CSRF-Token': App.csrfToken()
+                'X-CSRF-TOKEN': App.csrfToken()
             });
             return $.ajax(options);
         }

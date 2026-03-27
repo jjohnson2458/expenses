@@ -1,53 +1,60 @@
 <?php
-/**
- * RecurringExpense Model
- *
- * @author J.J. Johnson <visionquest716@gmail.com>
- */
 
 namespace App\Models;
 
-use App\Helpers\Database;
-use PDO;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RecurringExpense extends Model
 {
-    protected string $table = 'recurring_expenses';
+    protected $table = 'recurring_expenses';
 
-    /**
-     * Get all active recurring expenses
-     */
-    public function getActive(): array
+    protected $fillable = [
+        'user_id',
+        'category_id',
+        'type',
+        'description',
+        'amount',
+        'vendor',
+        'day_of_month',
+        'is_active',
+        'last_processed',
+    ];
+
+    protected function casts(): array
     {
-        $stmt = $this->db->query("SELECT * FROM {$this->table} WHERE is_active = 1 ORDER BY id DESC");
-        return $stmt->fetchAll();
+        return [
+            'amount' => 'decimal:2',
+            'is_active' => 'boolean',
+            'day_of_month' => 'integer',
+            'last_processed' => 'date',
+        ];
     }
 
-    /**
-     * Get recurring expenses that are due for processing
-     *
-     * Returns records where last_processed is null or before the current month, and is_active=1
-     */
-    public function getDueForProcessing(string $currentDate): array
+    public function user(): BelongsTo
     {
-        $sql = "SELECT * FROM {$this->table}
-                WHERE is_active = 1
-                AND (
-                    last_processed IS NULL
-                    OR DATE_FORMAT(last_processed, '%Y-%m') < DATE_FORMAT(:current_date, '%Y-%m')
-                )
-                ORDER BY id ASC";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['current_date' => $currentDate]);
-        return $stmt->fetchAll();
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * Mark a recurring expense as processed on a given date
-     */
-    public function markProcessed(int $id, string $date): void
+    public function category(): BelongsTo
     {
-        $this->update($id, ['last_processed' => $date]);
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public static function getDueForProcessing(string $currentDate): array
+    {
+        return static::where('is_active', true)
+            ->where(function ($q) use ($currentDate) {
+                $q->whereNull('last_processed')
+                  ->orWhereRaw("DATE_FORMAT(last_processed, '%Y-%m') < DATE_FORMAT(?, '%Y-%m')", [$currentDate]);
+            })
+            ->orderBy('id', 'asc')
+            ->get()
+            ->toArray();
     }
 }

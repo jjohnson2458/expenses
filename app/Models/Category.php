@@ -1,41 +1,50 @@
 <?php
-/**
- * Category Model
- *
- * @author J.J. Johnson <visionquest716@gmail.com>
- */
 
 namespace App\Models;
 
-use App\Helpers\Database;
-use PDO;
+use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected string $table = 'expense_categories';
+    protected $table = 'expense_categories';
 
-    /**
-     * Get all active categories ordered by sort_order
-     */
-    public function getActive(): array
+    protected $fillable = [
+        'name',
+        'name_es',
+        'description',
+        'color',
+        'icon',
+        'sort_order',
+        'is_active',
+    ];
+
+    protected function casts(): array
     {
-        $stmt = $this->db->query("SELECT * FROM {$this->table} WHERE is_active = 1 ORDER BY sort_order ASC");
-        return $stmt->fetchAll();
+        return [
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ];
     }
 
-    /**
-     * Update sort order for multiple categories
-     *
-     * @param array $orders Associative array of [id => sort_order]
-     */
-    public function updateSortOrder(array $orders): void
+    public function expenses()
     {
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET sort_order = :sort_order WHERE id = :id");
+        return $this->hasMany(Expense::class, 'category_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order', 'asc');
+    }
+
+    public static function updateSortOrder(array $orders): void
+    {
         foreach ($orders as $id => $sortOrder) {
-            $stmt->execute([
-                'id' => $id,
-                'sort_order' => $sortOrder,
-            ]);
+            static::where('id', $id)->update(['sort_order' => $sortOrder]);
         }
     }
 }
