@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\Category;
 use App\Models\ExpenseReport;
+use App\Services\ReceiptOcrService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -86,6 +87,7 @@ class ExpenseController extends Controller
             'description' => 'required|string|max:500',
             'amount' => 'required|numeric',
             'expense_date' => 'required|date',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf|max:10240',
         ]);
 
         $data = $this->buildExpenseData($request);
@@ -113,6 +115,7 @@ class ExpenseController extends Controller
             'description' => 'required|string|max:500',
             'amount' => 'required|numeric',
             'expense_date' => 'required|date',
+            'receipt' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,pdf|max:10240',
         ]);
 
         $expense = Expense::findOrFail($id);
@@ -142,6 +145,35 @@ class ExpenseController extends Controller
         }
 
         return redirect('/expenses')->with('flash', ['type' => 'success', 'message' => 'Expense deleted successfully.']);
+    }
+
+    public function scanReceipt(Request $request)
+    {
+        $request->validate([
+            'receipt' => 'required|file|mimes:jpg,jpeg,png,gif,webp|max:10240',
+        ]);
+
+        $file = $request->file('receipt');
+        $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+        $file->storeAs('receipts', $filename, 'public');
+        $receiptPath = 'receipts/' . $filename;
+
+        $ocr = new ReceiptOcrService();
+        $result = $ocr->processReceipt($receiptPath);
+
+        if (!$result) {
+            return response()->json([
+                'success' => false,
+                'receipt_path' => $receiptPath,
+                'message' => 'OCR processing unavailable. Receipt saved — fill in details manually.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'receipt_path' => $receiptPath,
+            'data' => $result,
+        ]);
     }
 
     public function voiceInput(Request $request)
@@ -208,7 +240,7 @@ class ExpenseController extends Controller
 
     private function buildExpenseData(Request $request): array
     {
-        return [
+        $data = [
             'description' => trim($request->description),
             'amount' => (float) $request->amount,
             'expense_date' => $request->expense_date,
@@ -219,5 +251,15 @@ class ExpenseController extends Controller
             'report_id' => $request->report_id ?: null,
             'notes' => $request->notes ?: null,
         ];
+
+        // Handle receipt upload
+        if ($request->hasFile('receipt') && $request->file('receipt')->isValid()) {
+            $file = $request->file('receipt');
+            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $file->storeAs('receipts', $filename, 'public');
+            $data['receipt_path'] = 'receipts/' . $filename;
+        }
+
+        return $data;
     }
 }

@@ -92,6 +92,22 @@
     </div>
 </div>
 
+{{-- Tax Deadline Alert --}}
+@if(!empty($nextDeadline))
+@php $daysUntil = now()->diffInDays(\Carbon\Carbon::parse($nextDeadline->due_date), false); @endphp
+@if($daysUntil <= 30 && $daysUntil >= 0)
+<div class="alert {{ $daysUntil <= 7 ? 'alert-danger' : 'alert-warning' }} d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle me-2 fs-5"></i>
+    <div>
+        <strong>Q{{ $nextDeadline->quarter }} Estimated Tax Due:</strong>
+        {{ \Carbon\Carbon::parse($nextDeadline->due_date)->format('M j, Y') }}
+        ({{ $daysUntil }} {{ $daysUntil === 1 ? 'day' : 'days' }} away)
+        <a href="{{ url('/tax/summary') }}" class="ms-2">View Tax Summary <i class="bi bi-arrow-right"></i></a>
+    </div>
+</div>
+@endif
+@endif
+
 {{-- Quick Actions --}}
 <div class="mb-4">
     <a href="{{ url('/expenses/create') }}" class="btn btn-primary me-2">
@@ -99,6 +115,9 @@
     </a>
     <a href="{{ url('/reports/create') }}" class="btn btn-outline-primary me-2">
         <i class="bi bi-file-earmark-plus me-1"></i> New Report
+    </a>
+    <a href="{{ url('/tax/mileage') }}" class="btn btn-outline-primary me-2">
+        <i class="bi bi-speedometer2 me-1"></i> Log Trip
     </a>
     <a href="{{ url('/import') }}" class="btn btn-outline-secondary">
         <i class="bi bi-upload me-1"></i> Import
@@ -169,21 +188,21 @@
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3">
-                <h5 class="mb-0 fw-semibold">By Category</h5>
+                <h5 class="mb-0 fw-semibold">Spending by Category</h5>
             </div>
             <div class="card-body">
+                @if(($categoryBreakdown ?? collect())->count() > 0)
+                <canvas id="categoryDonut" height="200"></canvas>
+                <hr class="my-3">
+                @endif
                 @forelse($categoryBreakdown ?? [] as $cat)
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="small fw-semibold">{{ $cat->name ?? $cat['name'] ?? 'Uncategorized' }}</span>
-                        <span class="small text-muted">${{ number_format($cat->total ?? $cat['total'] ?? 0, 2) }}</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar" role="progressbar"
-                             style="width: {{ $cat->percentage ?? $cat['percentage'] ?? 0 }}%; background: {{ $cat->color ?? $cat['color'] ?? '#4e73df' }};"
-                             aria-valuenow="{{ $cat->percentage ?? $cat['percentage'] ?? 0 }}"
-                             aria-valuemin="0" aria-valuemax="100">
-                        </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold">
+                            <span class="d-inline-block rounded-circle me-1" style="width:10px;height:10px;background:{{ $cat->color }}"></span>
+                            {{ $cat->name }}
+                        </span>
+                        <span class="small text-muted">${{ number_format($cat->total, 2) }}</span>
                     </div>
                 </div>
                 @empty
@@ -210,31 +229,36 @@
                 <div class="col-md-4">
                     <h6 class="text-success"><i class="bi bi-check-circle me-1"></i> Completed</h6>
                     <ul class="list-unstyled small">
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Laravel 12 migration</li>
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Expense ledger with credits/debits</li>
-                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Category management with drag-and-drop</li>
-                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Multiple expense reports</li>
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Voice input for expenses</li>
-                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> CSV import/export</li>
-                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> QuickBooks IIF export</li>
-                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Recurring expenses</li>
-                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Bilingual support (EN/ES)</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Receipt upload & OCR infrastructure</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Tax profile & IRS Schedule C mapping</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Mileage tracker (IRS $0.70/mi)</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Stripe subscription billing</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> User registration & password reset</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> SSL & landing page</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> CSV/IIF/iCal export</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Bilingual (EN/ES)</li>
                     </ul>
                 </div>
                 <div class="col-md-4">
-                    <h6 class="text-primary"><i class="bi bi-arrow-right-circle me-1"></i> In Progress</h6>
+                    <h6 class="text-primary"><i class="bi bi-arrow-right-circle me-1"></i> Coming Soon</h6>
                     <ul class="list-unstyled small">
-                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Receipt OCR with AI</li>
-                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Enhanced dashboard analytics</li>
-                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Laravel migration</li>
+                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Email-to-expense (receipts@vqmoney.com)</li>
+                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Budget tracking with alerts</li>
+                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> PDF report generation</li>
+                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Year-end tax package export</li>
                     </ul>
                 </div>
                 <div class="col-md-4">
                     <h6 class="text-muted"><i class="bi bi-circle me-1"></i> Planned</h6>
                     <ul class="list-unstyled small">
-                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> Multi-user support</li>
-                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> Budget tracking</li>
-                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> Mobile app</li>
-                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> API integrations</li>
+                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> Plaid bank feed integration</li>
+                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> QuickBooks Online sync</li>
+                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> Multi-user & team accounts</li>
+                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> PWA mobile experience</li>
+                        <li class="mb-1"><i class="bi bi-dot text-muted me-1"></i> REST API</li>
                     </ul>
                 </div>
             </div>
@@ -288,6 +312,37 @@ document.addEventListener('DOMContentLoaded', function() {
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) { return '$' + value.toLocaleString(); }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    // Category Donut Chart
+    const catData = @json(($categoryBreakdown ?? collect())->values());
+    const donutCtx = document.getElementById('categoryDonut');
+    if (donutCtx && catData.length > 0) {
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catData.map(c => c.name || 'Uncategorized'),
+                datasets: [{
+                    data: catData.map(c => parseFloat(c.total || 0)),
+                    backgroundColor: catData.map(c => c.color || '#6c757d'),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.label + ': $' + ctx.parsed.toLocaleString(undefined, {minimumFractionDigits: 2});
+                            }
                         }
                     }
                 }

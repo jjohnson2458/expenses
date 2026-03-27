@@ -222,6 +222,19 @@
                 <i class="bi bi-upload"></i> Import
             </a>
 
+            <div class="nav-section">Tax Center</div>
+            <div class="nav-submenu">
+                <a href="{{ url('/tax/summary') }}" class="nav-link {{ request()->is('tax/summary*') ? 'active' : '' }}">
+                    <i class="bi bi-file-earmark-text"></i> Tax Summary
+                </a>
+                <a href="{{ url('/tax/mileage') }}" class="nav-link {{ request()->is('tax/mileage*') ? 'active' : '' }}">
+                    <i class="bi bi-speedometer2"></i> Mileage Tracker
+                </a>
+                <a href="{{ url('/tax/profile') }}" class="nav-link {{ request()->is('tax/profile*') ? 'active' : '' }}">
+                    <i class="bi bi-building"></i> Tax Profile
+                </a>
+            </div>
+
             <div class="nav-section">Export</div>
             <div class="nav-submenu">
                 <a href="{{ url('/export/csv') }}" class="nav-link">

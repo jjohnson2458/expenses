@@ -13,6 +13,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\TaxController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -68,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/expenses/{id}', [ExpenseController::class, 'update']);
     Route::post('/expenses/{id}/delete', [ExpenseController::class, 'destroy']);
     Route::post('/expenses/voice', [ExpenseController::class, 'voiceInput']);
+    Route::post('/expenses/scan', [ExpenseController::class, 'scanReceipt']);
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index']);
@@ -99,6 +101,14 @@ Route::middleware('auth')->group(function () {
     // Import
     Route::get('/import', [ImportController::class, 'index']);
     Route::post('/import', [ImportController::class, 'process']);
+
+    // Tax
+    Route::get('/tax/profile', [TaxController::class, 'profile']);
+    Route::post('/tax/profile', [TaxController::class, 'updateProfile']);
+    Route::get('/tax/mileage', [TaxController::class, 'mileage']);
+    Route::post('/tax/mileage', [TaxController::class, 'storeMileage']);
+    Route::post('/tax/mileage/{id}/delete', [TaxController::class, 'destroyMileage']);
+    Route::get('/tax/summary', [TaxController::class, 'summary']);
 
     // Billing
     Route::get('/billing', [BillingController::class, 'index']);

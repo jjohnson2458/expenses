@@ -5,6 +5,41 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-lg-8">
+        @if(!isset($expense))
+        {{-- Quick Scan Card --}}
+        <div class="card border-0 shadow-sm mb-3" id="scanCard">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:44px;height:44px;background:rgba(78,115,223,0.1)">
+                        <i class="bi bi-camera text-primary" style="font-size:1.2rem"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Scan a Receipt</h6>
+                        <small class="text-muted">Upload a photo and AI will extract the details</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <label for="scanInput" class="btn btn-primary mb-0" style="cursor:pointer">
+                        <i class="bi bi-upload me-1"></i>Upload Receipt
+                    </label>
+                    <input type="file" id="scanInput" accept="image/*" class="d-none" capture="environment">
+                    <button type="button" id="scanCamera" class="btn btn-outline-primary d-md-none">
+                        <i class="bi bi-camera me-1"></i>Camera
+                    </button>
+                </div>
+                <div id="scanStatus" class="mt-3 d-none">
+                    <div class="d-flex align-items-center text-primary">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        <span>Processing receipt...</span>
+                    </div>
+                </div>
+                <div id="scanError" class="mt-3 d-none">
+                    <div class="alert alert-warning mb-0 py-2 small"></div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3">
                 <h5 class="mb-0 fw-semibold">
@@ -121,12 +156,28 @@
                     <div class="mb-4">
                         <label for="receipt" class="form-label fw-semibold">Receipt</label>
                         <input type="file" class="form-control @error('receipt') is-invalid @enderror" id="receipt" name="receipt" accept="image/*,.pdf">
+                        <div class="form-text">JPG, PNG, GIF, WebP, or PDF up to 10MB</div>
                         @error('receipt') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        @if(!empty($expense['receipt_path'] ?? ''))
-                            <div class="mt-2 small text-muted">
-                                <i class="bi bi-paperclip me-1"></i> Current: {{ basename($expense['receipt_path']) }}
+                        @if(!empty($expense['receipt_path'] ?? ($expense->receipt_path ?? '')))
+                            @php $receiptPath = $expense['receipt_path'] ?? $expense->receipt_path; @endphp
+                            <div class="mt-2 p-3 bg-light rounded">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="small text-muted">
+                                        <i class="bi bi-paperclip me-1"></i> {{ basename($receiptPath) }}
+                                    </span>
+                                    <a href="{{ asset('storage/' . $receiptPath) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                </div>
+                                @if(in_array(strtolower(pathinfo($receiptPath, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                                    <img src="{{ asset('storage/' . $receiptPath) }}" alt="Receipt" class="mt-2 img-fluid rounded" style="max-height: 200px;">
+                                @endif
                             </div>
                         @endif
+                        {{-- Preview for new uploads --}}
+                        <div id="receiptPreview" class="mt-2 d-none">
+                            <img id="receiptPreviewImg" src="" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
                     </div>
 
                     {{-- Buttons --}}
@@ -142,3 +193,82 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Receipt scan handler
+document.getElementById('scanInput')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('receipt', file);
+
+    document.getElementById('scanStatus').classList.remove('d-none');
+    document.getElementById('scanError').classList.add('d-none');
+
+    $.ajax({
+        url: '/expenses/scan',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success: function(res) {
+            document.getElementById('scanStatus').classList.add('d-none');
+
+            if (res.success && res.data) {
+                // Auto-fill form fields
+                if (res.data.description) document.getElementById('description').value = res.data.description;
+                if (res.data.amount) document.getElementById('amount').value = res.data.amount;
+                if (res.data.date) document.getElementById('date').value = res.data.date;
+                if (res.data.vendor) document.getElementById('vendor').value = res.data.vendor;
+                if (res.data.category_id) document.getElementById('category_id').value = res.data.category_id;
+
+                // Flash success on the scan card
+                document.getElementById('scanCard').style.borderLeft = '4px solid #1cc88a';
+
+                // Show receipt preview
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    document.getElementById('receiptPreviewImg').src = ev.target.result;
+                    document.getElementById('receiptPreview').classList.remove('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const errEl = document.getElementById('scanError');
+                errEl.classList.remove('d-none');
+                errEl.querySelector('.alert').textContent = res.message || 'Could not extract receipt data. Please fill in manually.';
+            }
+        },
+        error: function() {
+            document.getElementById('scanStatus').classList.add('d-none');
+            const errEl = document.getElementById('scanError');
+            errEl.classList.remove('d-none');
+            errEl.querySelector('.alert').textContent = 'Error processing receipt. Please try again.';
+        }
+    });
+});
+
+// Camera button triggers the same input with capture
+document.getElementById('scanCamera')?.addEventListener('click', function() {
+    document.getElementById('scanInput').click();
+});
+
+document.getElementById('receipt')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('receiptPreview');
+    const img = document.getElementById('receiptPreviewImg');
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            img.src = ev.target.result;
+            preview.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.classList.add('d-none');
+    }
+});
+</script>
+@endpush

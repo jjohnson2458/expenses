@@ -107,7 +107,12 @@
                     <tr>
                         <td class="text-muted">{{ $expense->expense_date ?? '' }}</td>
                         <td>
-                            <div class="fw-semibold">{{ $expense->description ?? '' }}</div>
+                            <div class="fw-semibold">
+                                {{ $expense->description ?? '' }}
+                                @if(!empty($expense->receipt_path))
+                                    <a href="{{ asset('storage/' . $expense->receipt_path) }}" target="_blank" title="View receipt" class="text-muted ms-1"><i class="bi bi-paperclip"></i></a>
+                                @endif
+                            </div>
                             @if(!empty($expense->vendor))
                                 <small class="text-muted">{{ $expense->vendor }}</small>
                             @endif
