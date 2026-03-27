@@ -105,32 +105,31 @@
                 <tbody>
                     @forelse($expenses ?? [] as $expense)
                     <tr>
-                        <td class="text-muted">{{ $expense->date ?? $expense['date'] ?? '' }}</td>
+                        <td class="text-muted">{{ $expense->expense_date ?? '' }}</td>
                         <td>
-                            <div class="fw-semibold">{{ $expense->description ?? $expense['description'] ?? '' }}</div>
-                            @if(!empty($expense->vendor ?? $expense['vendor'] ?? ''))
-                                <small class="text-muted">{{ $expense->vendor ?? $expense['vendor'] }}</small>
+                            <div class="fw-semibold">{{ $expense->description ?? '' }}</div>
+                            @if(!empty($expense->vendor))
+                                <small class="text-muted">{{ $expense->vendor }}</small>
                             @endif
                         </td>
                         <td>
-                            @if(!empty($expense->category_name ?? $expense['category_name'] ?? ''))
-                            <span class="badge rounded-pill" style="background: {{ $expense->category_color ?? $expense['category_color'] ?? '#6c757d' }};">
-                                {{ $expense->category_name ?? $expense['category_name'] }}
+                            @if(!empty($expense->category_name))
+                            <span class="badge rounded-pill" style="background: {{ $expense->category_color ?? '#6c757d' }};">
+                                {{ $expense->category_name }}
                             </span>
                             @else
                             <span class="text-muted small">Uncategorized</span>
                             @endif
                         </td>
-                        <td class="text-end fw-semibold {{ ($expense->type ?? $expense['type'] ?? 'debit') === 'credit' ? 'text-success' : 'text-danger' }}">
-                            {{ ($expense->type ?? $expense['type'] ?? 'debit') === 'credit' ? '+' : '-' }}${{ number_format($expense->amount ?? $expense['amount'] ?? 0, 2) }}
+                        <td class="text-end fw-semibold {{ ($expense->type ?? 'debit') === 'credit' ? 'text-success' : 'text-danger' }}">
+                            {{ ($expense->type ?? 'debit') === 'credit' ? '+' : '-' }}${{ number_format($expense->amount ?? 0, 2) }}
                         </td>
                         <td class="text-center">
-                            <a href="{{ url('/expenses/' . ($expense->id ?? $expense['id']) . '/edit') }}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <a href="{{ url('/expenses/' . $expense->id . '/edit') }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ url('/expenses/' . ($expense->id ?? $expense['id'])) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this expense?');">
+                            <form action="{{ url('/expenses/' . $expense->id . '/delete') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this expense?');">
                                 @csrf
-                                @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
