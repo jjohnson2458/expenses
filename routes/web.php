@@ -12,11 +12,20 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\LanguageController;
+use Illuminate\Support\Facades\Auth;
+
+// Welcome / Splash
+Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect('/dashboard');
+    }
+    return view('welcome');
+});
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Legal/Static Pages (no auth required)
 Route::get('/terms', [PageController::class, 'terms']);
@@ -28,7 +37,6 @@ Route::get('/lang/{locale}', [LanguageController::class, 'switch']);
 // All authenticated routes
 Route::middleware('auth')->group(function () {
     // Dashboard
-    Route::get('/', [DashboardController::class, 'index']);
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Categories
