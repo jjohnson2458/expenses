@@ -156,17 +156,17 @@
                         <tbody>
                             @forelse($recentExpenses ?? [] as $expense)
                             <tr>
-                                <td class="text-muted small">{{ $expense->date ?? $expense['date'] ?? '' }}</td>
-                                <td>{{ $expense->description ?? $expense['description'] ?? '' }}</td>
+                                <td class="text-muted small">{{ $expense->expense_date ?? '' }}</td>
+                                <td>{{ $expense->description ?? '' }}</td>
                                 <td>
-                                    @if(!empty($expense->category_name ?? $expense['category_name'] ?? ''))
-                                    <span class="badge rounded-pill" style="background: {{ $expense->category_color ?? $expense['category_color'] ?? '#6c757d' }};">
-                                        {{ $expense->category_name ?? $expense['category_name'] }}
+                                    @if(!empty($expense->category_name))
+                                    <span class="badge rounded-pill" style="background: {{ $expense->category_color ?? '#6c757d' }};">
+                                        {{ $expense->category_name }}
                                     </span>
                                     @endif
                                 </td>
-                                <td class="text-end fw-semibold {{ ($expense->type ?? $expense['type'] ?? 'debit') === 'credit' ? 'text-success' : 'text-danger' }}">
-                                    {{ ($expense->type ?? $expense['type'] ?? 'debit') === 'credit' ? '+' : '-' }}${{ number_format($expense->amount ?? $expense['amount'] ?? 0, 2) }}
+                                <td class="text-end fw-semibold {{ ($expense->type ?? 'debit') === 'credit' ? 'text-success' : 'text-danger' }}">
+                                    {{ ($expense->type ?? 'debit') === 'credit' ? '+' : '-' }}${{ number_format($expense->amount ?? 0, 2) }}
                                 </td>
                             </tr>
                             @empty
