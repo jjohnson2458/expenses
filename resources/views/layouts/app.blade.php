@@ -240,10 +240,19 @@
                 <a href="{{ url('/export/csv') }}" class="nav-link">
                     <i class="bi bi-filetype-csv"></i> CSV Export
                 </a>
-                <a href="{{ url('/export/iif') }}" class="nav-link">
+                <a href="{{ url('/export/ofx') }}" class="nav-link">
+                    <i class="bi bi-file-earmark-code"></i> OFX (Open Financial)
+                </a>
+                <a href="{{ url('/export/qfx') }}" class="nav-link">
+                    <i class="bi bi-file-earmark-code"></i> QFX (Quicken)
+                </a>
+                <a href="{{ url('/export/qbo') }}" class="nav-link">
+                    <i class="bi bi-file-earmark-code"></i> QBO (QuickBooks)
+                </a>
+                <a href="{{ url('/export/quickbooks') }}" class="nav-link">
                     <i class="bi bi-file-earmark-text"></i> QuickBooks IIF
                 </a>
-                <a href="{{ url('/export/ical') }}" class="nav-link">
+                <a href="{{ url('/export/calendar') }}" class="nav-link">
                     <i class="bi bi-calendar-event"></i> iCal Export
                 </a>
             </div>

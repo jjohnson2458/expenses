@@ -1,24 +1,39 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-const { login, logout, TEST_USER } = require('./helpers/auth');
+import { test, expect } from '@playwright/test';
+import { login, logout, TEST_USER } from './helpers/auth.js';
 
 test.describe('Authentication', () => {
 
     test('login page loads correctly', async ({ page }) => {
         await page.goto('/login');
 
-        // Title contains MyExpenses
-        await expect(page).toHaveTitle(/MyExpenses/);
+        // Title contains VQ Money
+        await expect(page).toHaveTitle(/VQ Money/);
 
         // Branding is visible
-        await expect(page.locator('h1', { hasText: 'MyExpenses' })).toBeVisible();
-        await expect(page.locator('text=Smart Expense Reporting')).toBeVisible();
+        await expect(page.locator('h1')).toContainText('VQ Money');
+        await expect(page.locator('body')).toContainText('Your trusted accounting partner');
 
         // Form fields are present
         await expect(page.locator('#email')).toBeVisible();
         await expect(page.locator('#password')).toBeVisible();
-        await expect(page.locator('button[type="submit"]')).toBeVisible();
-        await expect(page.locator('button[type="submit"]')).toContainText('Sign In');
+        const signIn = page.locator('button:has-text("Sign In")');
+        await expect(signIn).toBeVisible();
+    });
+
+    test('login page has demo button', async ({ page }) => {
+        await page.goto('/login');
+
+        const demoButton = page.locator('button:has-text("Try Demo"), a:has-text("Try Demo")');
+        await expect(demoButton.first()).toBeVisible();
+    });
+
+    test('login page has forgot password link', async ({ page }) => {
+        await page.goto('/login');
+
+        const forgotLink = page.locator('a[href*="forgot-password"]');
+        const linkCount = await forgotLink.count();
+        expect(linkCount).toBeGreaterThan(0);
     });
 
     test('login with valid credentials redirects to dashboard', async ({ page }) => {

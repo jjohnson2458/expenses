@@ -455,6 +455,7 @@
             <div class="d-flex align-items-center gap-4">
                 <a href="#features" class="nav-link d-none d-md-inline">Features</a>
                 <a href="#pricing" class="nav-link d-none d-md-inline">Pricing</a>
+                <a href="{{ url('/demo') }}" class="nav-link d-none d-md-inline">Live Demo</a>
                 <a href="{{ url('/login') }}" class="btn btn-sign-in">Sign In</a>
             </div>
         </div>

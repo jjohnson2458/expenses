@@ -18,6 +18,7 @@ class Expense extends Model
         'vendor',
         'receipt_path',
         'notes',
+        'fitid',
         'is_recurring',
     ];
 

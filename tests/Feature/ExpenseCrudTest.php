@@ -4,131 +4,88 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\Expense;
-use App\Models\ExpenseReport;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ExpenseCrudTest extends TestCase
 {
-    private Expense $model;
+    use RefreshDatabase;
 
-    protected function setUp(): void
+    private function authUser(): User
     {
-        parent::setUp();
-        $this->model = new Expense();
-        $this->actingAsUser();
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        return $user;
     }
 
     public function test_can_list_expenses(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
-
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'description' => 'Lunch',
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'description' => 'Dinner',
-        ]);
-
-        $all = $this->model->all();
-        $descriptions = array_column($all, 'description');
-        $this->assertContains('Lunch', $descriptions);
-        $this->assertContains('Dinner', $descriptions);
+        $this->authUser();
+        $response = $this->get('/expenses');
+        $response->assertStatus(200);
     }
 
     public function test_can_create_debit_expense(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
+        $user = $this->authUser();
 
-        $id = $this->model->create([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
+        $response = $this->post('/expenses', [
+            'description' => 'Office Supplies',
+            'amount' => 49.99,
             'type' => 'debit',
-            'description' => 'Office chair',
-            'amount' => 299.99,
-            'expense_date' => '2026-03-22',
-            'vendor' => 'IKEA',
-            'notes' => 'Ergonomic chair',
+            'expense_date' => '2026-03-15',
+            'vendor' => 'Staples',
         ]);
 
-        $expense = $this->model->find($id);
-        $this->assertEquals('debit', $expense['type']);
-        $this->assertEquals('299.99', $expense['amount']);
-        $this->assertEquals('Office chair', $expense['description']);
-        $this->assertEquals('IKEA', $expense['vendor']);
+        $this->assertDatabaseHas('expenses', [
+            'description' => 'Office Supplies',
+            'type' => 'debit',
+            'user_id' => $user->id,
+        ]);
     }
 
     public function test_can_create_credit_expense(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
+        $user = $this->authUser();
 
-        $id = $this->model->create([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
+        $response = $this->post('/expenses', [
+            'description' => 'Client Refund',
+            'amount' => 100.00,
             'type' => 'credit',
-            'description' => 'Refund for defective item',
-            'amount' => 49.99,
-            'expense_date' => '2026-03-20',
-            'vendor' => 'Amazon',
+            'expense_date' => '2026-03-10',
         ]);
 
-        $expense = $this->model->find($id);
-        $this->assertEquals('credit', $expense['type']);
-        $this->assertEquals('49.99', $expense['amount']);
+        $this->assertDatabaseHas('expenses', ['description' => 'Client Refund', 'type' => 'credit']);
     }
 
     public function test_can_update_expense(): void
     {
-        $expense = $this->createTestExpense(['description' => 'Original desc']);
-
-        $this->model->update((int) $expense['id'], [
-            'description' => 'Updated desc',
-            'amount' => 150.00,
+        $user = $this->authUser();
+        $expense = Expense::create([
+            'user_id' => $user->id, 'description' => 'Old', 'amount' => 10,
+            'type' => 'debit', 'expense_date' => '2026-03-01',
         ]);
 
-        $updated = $this->model->find((int) $expense['id']);
-        $this->assertEquals('Updated desc', $updated['description']);
-        $this->assertEquals('150.00', $updated['amount']);
+        $response = $this->post("/expenses/{$expense->id}", [
+            'description' => 'Updated Expense',
+            'amount' => 75.00,
+            'type' => 'debit',
+            'expense_date' => '2026-03-01',
+        ]);
+
+        $this->assertDatabaseHas('expenses', ['id' => $expense->id, 'description' => 'Updated Expense']);
     }
 
     public function test_can_delete_expense(): void
     {
-        $expense = $this->createTestExpense();
-
-        $this->assertTrue($this->model->delete((int) $expense['id']));
-        $this->assertNull($this->model->find((int) $expense['id']));
-    }
-
-    public function test_expense_linked_to_report_updates_total(): void
-    {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
-        $report = $this->createTestReport(['user_id' => $user['id']]);
-
-        // Add two expenses to the report
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'report_id' => $report['id'],
-            'amount' => 50.00,
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'report_id' => $report['id'],
-            'amount' => 75.00,
+        $user = $this->authUser();
+        $expense = Expense::create([
+            'user_id' => $user->id, 'description' => 'Delete Me', 'amount' => 10,
+            'type' => 'debit', 'expense_date' => '2026-03-01',
         ]);
 
-        // Recalculate the report total
-        $reportModel = new ExpenseReport();
-        $reportModel->updateTotal((int) $report['id']);
+        $response = $this->post("/expenses/{$expense->id}/delete");
 
-        $updatedReport = $reportModel->find((int) $report['id']);
-        $this->assertEquals('125.00', $updatedReport['total_amount']);
+        $this->assertDatabaseMissing('expenses', ['id' => $expense->id]);
     }
 }

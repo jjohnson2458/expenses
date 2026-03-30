@@ -36,4 +36,4 @@ async function logout(page) {
     await page.waitForURL('**/login');
 }
 
-module.exports = { login, logout, TEST_USER };
+export { login, logout, TEST_USER };

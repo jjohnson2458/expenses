@@ -64,9 +64,8 @@
                             <a href="{{ url('/recurring/' . ($recurring->id ?? $recurring['id']) . '/edit') }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ url('/recurring/' . ($recurring->id ?? $recurring['id'])) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this recurring expense?');">
+                            <form action="{{ url('/recurring/' . ($recurring->id ?? $recurring['id']) . '/delete') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this recurring expense?');">
                                 @csrf
-                                @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>

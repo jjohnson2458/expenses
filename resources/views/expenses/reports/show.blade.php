@@ -86,9 +86,9 @@
                             {{ ($expense->type ?? $expense['type'] ?? 'debit') === 'credit' ? '+' : '-' }}${{ number_format($expense->amount ?? $expense['amount'] ?? 0, 2) }}
                         </td>
                         <td class="text-center">
-                            <form action="{{ url('/reports/' . $report['id'] . '/expenses/' . ($expense->id ?? $expense['id'])) }}" method="POST" onsubmit="return confirm('Remove from report?');">
+                            <form action="{{ url('/reports/' . $report['id'] . '/remove-expense') }}" method="POST" onsubmit="return confirm('Remove from report?');">
                                 @csrf
-                                @method('DELETE')
+                                <input type="hidden" name="expense_id" value="{{ $expense->id ?? $expense['id'] }}">
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
                                     <i class="bi bi-x-lg"></i>
                                 </button>

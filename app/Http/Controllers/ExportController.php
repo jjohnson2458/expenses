@@ -107,6 +107,115 @@ class ExportController extends Controller
         }, $filename, ['Content-Type' => 'text/calendar; charset=UTF-8']);
     }
 
+    public function ofx(Request $request)
+    {
+        return $this->exportOfxFormat($request, 'ofx');
+    }
+
+    public function qfx(Request $request)
+    {
+        return $this->exportOfxFormat($request, 'qfx');
+    }
+
+    public function qbo(Request $request)
+    {
+        return $this->exportOfxFormat($request, 'qbo');
+    }
+
+    private function exportOfxFormat(Request $request, string $format)
+    {
+        $expenses = $this->getFilteredExpenses($request);
+        $filename = 'expenses_' . date('Y-m-d') . '.' . $format;
+
+        return response()->streamDownload(function () use ($expenses) {
+            $output = fopen('php://output', 'w');
+
+            // OFX SGML header
+            fwrite($output, "OFXHEADER:100\n");
+            fwrite($output, "DATA:OFXSGML\n");
+            fwrite($output, "VERSION:102\n");
+            fwrite($output, "SECURITY:NONE\n");
+            fwrite($output, "ENCODING:USASCII\n");
+            fwrite($output, "CHARSET:1252\n");
+            fwrite($output, "COMPRESSION:NONE\n");
+            fwrite($output, "OLDFILEUID:NONE\n");
+            fwrite($output, "NEWFILEUID:NONE\n");
+            fwrite($output, "\n");
+
+            $now = date('YmdHis');
+            $dtStart = null;
+            $dtEnd = null;
+
+            // Determine date range
+            foreach ($expenses as $row) {
+                $d = date('Ymd', strtotime($row->expense_date)) . '120000';
+                if ($dtStart === null || $d < $dtStart) $dtStart = $d;
+                if ($dtEnd === null || $d > $dtEnd) $dtEnd = $d;
+            }
+            $dtStart = $dtStart ?? $now;
+            $dtEnd = $dtEnd ?? $now;
+
+            fwrite($output, "<OFX>\n");
+            fwrite($output, "<SIGNONMSGSRSV1>\n");
+            fwrite($output, "<SONRS>\n");
+            fwrite($output, "<STATUS>\n");
+            fwrite($output, "<CODE>0\n");
+            fwrite($output, "<SEVERITY>INFO\n");
+            fwrite($output, "</STATUS>\n");
+            fwrite($output, "<DTSERVER>{$now}\n");
+            fwrite($output, "<LANGUAGE>ENG\n");
+            fwrite($output, "</SONRS>\n");
+            fwrite($output, "</SIGNONMSGSRSV1>\n");
+            fwrite($output, "<BANKMSGSRSV1>\n");
+            fwrite($output, "<STMTTRNRS>\n");
+            fwrite($output, "<TRNUID>0\n");
+            fwrite($output, "<STATUS>\n");
+            fwrite($output, "<CODE>0\n");
+            fwrite($output, "<SEVERITY>INFO\n");
+            fwrite($output, "</STATUS>\n");
+            fwrite($output, "<STMTRS>\n");
+            fwrite($output, "<CURDEF>USD\n");
+            fwrite($output, "<BANKACCTFROM>\n");
+            fwrite($output, "<BANKID>000000000\n");
+            fwrite($output, "<ACCTID>VQMONEY\n");
+            fwrite($output, "<ACCTTYPE>CHECKING\n");
+            fwrite($output, "</BANKACCTFROM>\n");
+            fwrite($output, "<BANKTRANLIST>\n");
+            fwrite($output, "<DTSTART>{$dtStart}\n");
+            fwrite($output, "<DTEND>{$dtEnd}\n");
+
+            foreach ($expenses as $row) {
+                $dt = date('Ymd', strtotime($row->expense_date)) . '120000';
+                $amount = (float) ($row->amount ?? 0);
+                $isDebit = ($row->type ?? 'debit') === 'debit';
+                $trnAmt = $isDebit ? -$amount : $amount;
+                $trnType = $isDebit ? 'DEBIT' : 'CREDIT';
+                $fitid = $row->fitid ?? ('VQM' . ($row->id ?? uniqid()));
+                $name = substr(trim($row->description ?? 'Unknown'), 0, 32);
+                $memo = trim($row->category_name ?? '');
+
+                fwrite($output, "<STMTTRN>\n");
+                fwrite($output, "<TRNTYPE>{$trnType}\n");
+                fwrite($output, "<DTPOSTED>{$dt}\n");
+                fwrite($output, "<TRNAMT>" . number_format($trnAmt, 2, '.', '') . "\n");
+                fwrite($output, "<FITID>{$fitid}\n");
+                fwrite($output, "<NAME>{$name}\n");
+                if ($memo !== '') {
+                    fwrite($output, "<MEMO>{$memo}\n");
+                }
+                fwrite($output, "</STMTTRN>\n");
+            }
+
+            fwrite($output, "</BANKTRANLIST>\n");
+            fwrite($output, "</STMTRS>\n");
+            fwrite($output, "</STMTTRNRS>\n");
+            fwrite($output, "</BANKMSGSRSV1>\n");
+            fwrite($output, "</OFX>\n");
+
+            fclose($output);
+        }, $filename, ['Content-Type' => 'application/x-ofx']);
+    }
+
     public function reportCsv(int $id)
     {
         $report = ExpenseReport::findOrFail($id);

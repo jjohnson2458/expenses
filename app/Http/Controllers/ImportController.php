@@ -11,16 +11,161 @@ class ImportController extends Controller
 {
     public function index()
     {
-        return view('import.index');
+        $categories = Category::where('is_active', 1)->orderBy('name')->get();
+        return view('import.index', compact('categories'));
     }
 
     public function process(Request $request)
     {
         $request->validate([
-            'import_file' => 'required|file|mimes:csv,txt',
+            'import_file' => 'required|file|max:5120',
         ]);
 
         $file = $request->file('import_file');
+        $ext = strtolower($file->getClientOriginalExtension());
+
+        if (in_array($ext, ['ofx', 'qfx', 'qbo'])) {
+            return $this->processOfx($file, $request);
+        }
+
+        if (in_array($ext, ['csv', 'txt'])) {
+            return $this->processCsv($file, $request);
+        }
+
+        return redirect('/import')->with('flash', [
+            'type' => 'danger',
+            'message' => "Unsupported file type: .{$ext}. Please upload CSV, OFX, QFX, or QBO.",
+        ]);
+    }
+
+    private function processOfx($file, Request $request)
+    {
+        $content = file_get_contents($file->getPathname());
+        if ($content === false) {
+            return redirect('/import')->with('flash', ['type' => 'danger', 'message' => 'Unable to read the uploaded file.']);
+        }
+
+        $transactions = $this->parseOfxTransactions($content);
+        if (empty($transactions)) {
+            return redirect('/import')->with('flash', ['type' => 'danger', 'message' => 'No transactions found in the file.']);
+        }
+
+        $defaultCategoryId = $request->input('category_id') ?: null;
+        $userId = Auth::id();
+
+        // Gather existing FITIDs for this user to skip duplicates
+        $existingFitIds = Expense::where('user_id', $userId)
+            ->whereNotNull('fitid')
+            ->pluck('fitid')
+            ->flip()
+            ->toArray();
+
+        $successes = 0;
+        $skipped = 0;
+        $failures = 0;
+        $errors = [];
+
+        foreach ($transactions as $i => $txn) {
+            $rowLabel = $i + 1;
+
+            // Skip duplicates by FITID
+            if (!empty($txn['fitid']) && isset($existingFitIds[$txn['fitid']])) {
+                $skipped++;
+                continue;
+            }
+
+            $parsedDate = $this->parseOfxDate($txn['date'] ?? '');
+            if ($parsedDate === null) {
+                $failures++;
+                $errors[] = "Transaction {$rowLabel}: Invalid date '{$txn['date']}'.";
+                continue;
+            }
+
+            $amount = abs((float) $txn['amount']);
+            if ($amount == 0) {
+                $failures++;
+                $errors[] = "Transaction {$rowLabel}: Zero amount.";
+                continue;
+            }
+
+            $type = ((float) $txn['amount'] >= 0) ? 'credit' : 'debit';
+            $description = trim($txn['name'] ?? 'Unknown');
+            $memo = trim($txn['memo'] ?? '');
+
+            try {
+                Expense::create([
+                    'description' => $description,
+                    'amount' => $amount,
+                    'expense_date' => $parsedDate,
+                    'type' => $type,
+                    'category_id' => $defaultCategoryId,
+                    'notes' => $memo !== '' ? $memo : null,
+                    'fitid' => $txn['fitid'] ?? null,
+                    'user_id' => $userId,
+                ]);
+                $successes++;
+            } catch (\Exception $ex) {
+                $failures++;
+                $errors[] = "Transaction {$rowLabel}: " . $ex->getMessage();
+            }
+        }
+
+        $message = "Import complete: {$successes} transaction(s) imported.";
+        if ($skipped > 0) $message .= " {$skipped} duplicate(s) skipped.";
+        if ($failures > 0) {
+            $message .= " {$failures} failed.";
+            if (!empty($errors)) {
+                $message .= '<br><small>' . implode('<br>', array_slice($errors, 0, 10)) . '</small>';
+            }
+        }
+
+        $flashType = $failures > 0 ? ($successes > 0 ? 'warning' : 'danger') : 'success';
+        return redirect('/import')->with('flash', ['type' => $flashType, 'message' => $message]);
+    }
+
+    private function parseOfxTransactions(string $content): array
+    {
+        $transactions = [];
+
+        // Split on STMTTRN blocks
+        preg_match_all('/<STMTTRN>(.*?)<\/STMTTRN>/si', $content, $matches);
+        if (empty($matches[1])) return [];
+
+        foreach ($matches[1] as $block) {
+            $txn = [];
+            $txn['type'] = $this->extractOfxValue($block, 'TRNTYPE');
+            $txn['date'] = $this->extractOfxValue($block, 'DTPOSTED');
+            $txn['amount'] = $this->extractOfxValue($block, 'TRNAMT');
+            $txn['fitid'] = $this->extractOfxValue($block, 'FITID');
+            $txn['name'] = $this->extractOfxValue($block, 'NAME');
+            $txn['memo'] = $this->extractOfxValue($block, 'MEMO');
+            $transactions[] = $txn;
+        }
+
+        return $transactions;
+    }
+
+    private function extractOfxValue(string $block, string $tag): string
+    {
+        // OFX SGML: <TAG>value (no closing tag, value ends at next < or newline)
+        if (preg_match('/<' . preg_quote($tag, '/') . '>([^<\r\n]+)/i', $block, $m)) {
+            return trim($m[1]);
+        }
+        return '';
+    }
+
+    private function parseOfxDate(string $date): ?string
+    {
+        // OFX dates: YYYYMMDD or YYYYMMDDHHMMSS or YYYYMMDDHHMMSS.XXX
+        if (preg_match('/^(\d{4})(\d{2})(\d{2})/', $date, $m)) {
+            $ts = mktime(0, 0, 0, (int) $m[2], (int) $m[3], (int) $m[1]);
+            return $ts !== false ? date('Y-m-d', $ts) : null;
+        }
+        return null;
+    }
+
+    private function processCsv($file, Request $request)
+    {
         $handle = fopen($file->getPathname(), 'r');
 
         if ($handle === false) {
@@ -44,7 +189,7 @@ class ImportController extends Controller
             'description' => $this->findColumn($header, ['description', 'desc']),
             'category' => $this->findColumn($header, ['category', 'cat']),
             'amount' => $this->findColumn($header, ['amount', 'total']),
-            'type' => $this->findColumn($header, ['type']),
+            'type' => $this->findColumn($header, ['type', 'transaction type']),
             'vendor' => $this->findColumn($header, ['vendor', 'payee', 'merchant']),
             'notes' => $this->findColumn($header, ['notes', 'memo', 'note']),
         ];
@@ -55,7 +200,7 @@ class ImportController extends Controller
         }
 
         $categoryLookup = [];
-        foreach (Category::active()->get() as $cat) {
+        foreach (Category::where('is_active', 1)->get() as $cat) {
             $categoryLookup[strtolower(trim($cat->name))] = $cat->id;
         }
 
@@ -90,6 +235,10 @@ class ImportController extends Controller
             }
 
             $amount = (float) str_replace([',', '$', ' '], '', $amountRaw);
+            if ($amount < 0) {
+                $type = 'debit';
+                $amount = abs($amount);
+            }
             if ($amount <= 0) {
                 $failures++;
                 $errors[] = "Row {$rowNum}: Invalid amount '{$amountRaw}'.";

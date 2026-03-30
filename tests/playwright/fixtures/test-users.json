@@ -1,0 +1,133 @@
+{
+    "users": {
+        "primary": {
+            "name": "Test User",
+            "email": "email4johnson@gmail.com",
+            "password": "24AdaPlace",
+            "role": "user"
+        },
+        "demo": {
+            "name": "Demo User",
+            "email": "demo@vqmoney.com",
+            "password": "demo123",
+            "role": "user"
+        },
+        "newUser": {
+            "name": "New Registration",
+            "email": "newuser_playwright@test.com",
+            "password": "TestPass123!",
+            "role": "user"
+        }
+    },
+    "testData": {
+        "expenses": [
+            {
+                "description": "Office Supplies - Staples",
+                "amount": "42.50",
+                "type": "debit",
+                "vendor": "Staples",
+                "date": "2026-03-15"
+            },
+            {
+                "description": "Client Payment - VisionQuest",
+                "amount": "2500.00",
+                "type": "credit",
+                "vendor": "VisionQuest Services",
+                "date": "2026-03-20"
+            },
+            {
+                "description": "Gas Station Fill-up",
+                "amount": "58.73",
+                "type": "debit",
+                "vendor": "Shell Gas",
+                "date": "2026-03-22"
+            }
+        ],
+        "categories": [
+            {
+                "name": "Office Supplies",
+                "color": "#3498db",
+                "icon": "bi-pencil"
+            },
+            {
+                "name": "Travel",
+                "color": "#e74c3c",
+                "icon": "bi-airplane"
+            },
+            {
+                "name": "Meals & Entertainment",
+                "color": "#2ecc71",
+                "icon": "bi-cup-hot"
+            }
+        ],
+        "reports": [
+            {
+                "title": "March 2026 Business Expenses",
+                "description": "Monthly expense report",
+                "status": "draft",
+                "date_from": "2026-03-01",
+                "date_to": "2026-03-31"
+            }
+        ],
+        "recurringExpenses": [
+            {
+                "description": "Monthly Internet Service",
+                "amount": "79.99",
+                "type": "debit",
+                "vendor": "Comcast",
+                "day_of_month": "1"
+            },
+            {
+                "description": "Software Subscription",
+                "amount": "29.99",
+                "type": "debit",
+                "vendor": "Adobe",
+                "day_of_month": "15"
+            }
+        ],
+        "mileageLogs": [
+            {
+                "trip_date": "2026-03-10",
+                "start_location": "123 Main St, Anytown",
+                "end_location": "456 Business Blvd, Commerce City",
+                "business_purpose": "Client meeting",
+                "miles": "24.5",
+                "round_trip": true
+            }
+        ],
+        "taxProfile": {
+            "filing_status": "single",
+            "state": "NY",
+            "business_entity": "llc",
+            "business_name": "VisionQuest Services LLC",
+            "ein": "12-3456789",
+            "fiscal_year_start": "1",
+            "track_mileage": true,
+            "home_office": true,
+            "home_office_sqft": "200",
+            "home_total_sqft": "1500"
+        }
+    },
+    "securityPayloads": {
+        "xss": [
+            "<script>alert('xss')</script>",
+            "<img src=x onerror=alert('xss')>",
+            "javascript:alert('xss')",
+            "<svg onload=alert('xss')>"
+        ],
+        "sqlInjection": [
+            "' OR '1'='1",
+            "'; DROP TABLE users; --",
+            "1' UNION SELECT * FROM users --",
+            "admin'--"
+        ],
+        "specialChars": [
+            "Test & Company <LLC>",
+            "Café Résumé naïve",
+            "日本語テスト",
+            "🏢 Office 📊 Expense",
+            "O'Brien & Associates \"Inc.\""
+        ],
+        "maxLengthInput": "A very long string that repeats itself over and over again to test maximum input length handling. This string is intentionally made to be very long to test the application's handling of oversized inputs. "
+    }
+}

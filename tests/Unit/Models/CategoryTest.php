@@ -4,100 +4,69 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use App\Models\Category;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CategoryTest extends TestCase
 {
-    private Category $model;
+    use RefreshDatabase;
 
-    protected function setUp(): void
+    private function makeCategory(array $attrs = []): Category
     {
-        parent::setUp();
-        $this->model = new Category();
+        return Category::create(array_merge([
+            'name' => 'Test Category',
+            'color' => '#007bff',
+            'icon' => 'bi-tag',
+            'sort_order' => 0,
+            'is_active' => 1,
+        ], $attrs));
     }
 
     public function test_can_create_category(): void
     {
-        $id = $this->model->create([
-            'name' => 'Groceries',
-            'description' => 'Food and household items',
-            'color' => '#28a745',
-            'icon' => 'bi-cart',
-            'sort_order' => 1,
-            'is_active' => 1,
-        ]);
-
-        $this->assertGreaterThan(0, $id);
-
-        $category = $this->model->find($id);
-        $this->assertNotNull($category);
-        $this->assertEquals('Groceries', $category['name']);
-        $this->assertEquals('#28a745', $category['color']);
+        $cat = $this->makeCategory(['name' => 'Office']);
+        $this->assertDatabaseHas('expense_categories', ['name' => 'Office']);
     }
 
     public function test_can_find_category_by_id(): void
     {
-        $category = $this->createTestCategory(['name' => 'Utilities']);
-
-        $found = $this->model->find((int) $category['id']);
+        $cat = $this->makeCategory();
+        $found = Category::find($cat->id);
         $this->assertNotNull($found);
-        $this->assertEquals('Utilities', $found['name']);
+        $this->assertEquals($cat->name, $found->name);
     }
 
     public function test_can_update_category(): void
     {
-        $category = $this->createTestCategory(['name' => 'Old Name']);
-
-        $result = $this->model->update((int) $category['id'], ['name' => 'New Name']);
-        $this->assertTrue($result);
-
-        $updated = $this->model->find((int) $category['id']);
-        $this->assertEquals('New Name', $updated['name']);
+        $cat = $this->makeCategory();
+        $cat->update(['name' => 'Updated Name']);
+        $this->assertDatabaseHas('expense_categories', ['id' => $cat->id, 'name' => 'Updated Name']);
     }
 
     public function test_can_delete_category(): void
     {
-        $category = $this->createTestCategory();
-
-        $result = $this->model->delete((int) $category['id']);
-        $this->assertTrue($result);
-
-        $deleted = $this->model->find((int) $category['id']);
-        $this->assertNull($deleted);
+        $cat = $this->makeCategory();
+        $id = $cat->id;
+        $cat->delete();
+        $this->assertDatabaseMissing('expense_categories', ['id' => $id]);
     }
 
-    public function test_get_active_returns_only_active(): void
+    public function test_active_scope_returns_only_active(): void
     {
-        $this->createTestCategory(['name' => 'Active One', 'is_active' => 1, 'sort_order' => 1]);
-        $this->createTestCategory(['name' => 'Active Two', 'is_active' => 1, 'sort_order' => 2]);
-        $this->createTestCategory(['name' => 'Inactive', 'is_active' => 0, 'sort_order' => 3]);
+        $this->makeCategory(['name' => 'Active', 'is_active' => 1]);
+        $this->makeCategory(['name' => 'Inactive', 'is_active' => 0]);
 
-        $active = $this->model->getActive();
-
-        // All returned items should be active
-        foreach ($active as $item) {
-            $this->assertEquals(1, $item['is_active']);
-        }
-
-        $names = array_column($active, 'name');
-        $this->assertContains('Active One', $names);
-        $this->assertContains('Active Two', $names);
-        $this->assertNotContains('Inactive', $names);
+        $active = Category::active()->get();
+        $this->assertEquals(1, $active->count());
+        $this->assertEquals('Active', $active->first()->name);
     }
 
-    public function test_update_sort_order(): void
+    public function test_ordered_scope(): void
     {
-        $cat1 = $this->createTestCategory(['name' => 'Cat A', 'sort_order' => 0]);
-        $cat2 = $this->createTestCategory(['name' => 'Cat B', 'sort_order' => 0]);
+        $this->makeCategory(['name' => 'B', 'sort_order' => 2]);
+        $this->makeCategory(['name' => 'A', 'sort_order' => 1]);
 
-        $this->model->updateSortOrder([
-            $cat1['id'] => 10,
-            $cat2['id'] => 20,
-        ]);
-
-        $updated1 = $this->model->find((int) $cat1['id']);
-        $updated2 = $this->model->find((int) $cat2['id']);
-
-        $this->assertEquals(10, $updated1['sort_order']);
-        $this->assertEquals(20, $updated2['sort_order']);
+        $ordered = Category::ordered()->get();
+        $this->assertEquals('A', $ordered->first()->name);
+        $this->assertEquals('B', $ordered->last()->name);
     }
 }

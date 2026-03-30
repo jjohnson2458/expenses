@@ -3,189 +3,124 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use App\Models\Expense;
+use App\Models\Category;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ExportTest extends TestCase
 {
-    protected function setUp(): void
+    use RefreshDatabase;
+
+    private function seedExpenses(): User
     {
-        parent::setUp();
-        $this->actingAsUser();
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $cat = Category::create(['name' => 'Office', 'user_id' => $user->id, 'is_active' => 1, 'sort_order' => 0]);
+
+        Expense::create([
+            'user_id' => $user->id, 'category_id' => $cat->id,
+            'description' => 'Printer Paper', 'amount' => 45.50,
+            'type' => 'debit', 'expense_date' => '2026-03-10', 'vendor' => 'Staples',
+        ]);
+        Expense::create([
+            'user_id' => $user->id,
+            'description' => 'Client Payment', 'amount' => 1500.00,
+            'type' => 'credit', 'expense_date' => '2026-03-15',
+        ]);
+
+        return $user;
     }
 
-    /**
-     * Build sample expense rows matching the format returned by
-     * ExportController::getFilteredExpenses() (joined with category/report).
-     */
-    private function getSampleExpenses(): array
+    public function test_csv_export_downloads(): void
     {
-        return [
-            [
-                'id' => 1,
-                'expense_date' => '2026-03-15',
-                'description' => 'Office Supplies',
-                'category_name' => 'Supplies',
-                'vendor' => 'Staples',
-                'type' => 'debit',
-                'amount' => 45.99,
-                'report_title' => 'March Report',
-                'notes' => 'Pens and paper',
-            ],
-            [
-                'id' => 2,
-                'expense_date' => '2026-03-18',
-                'description' => 'Client Refund',
-                'category_name' => 'Income',
-                'vendor' => 'Acme Corp',
-                'type' => 'credit',
-                'amount' => 200.00,
-                'report_title' => '',
-                'notes' => '',
-            ],
-        ];
+        $this->seedExpenses();
+
+        $response = $this->get('/export/csv');
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $response->assertDownload();
     }
 
-    public function test_csv_export_format(): void
+    public function test_csv_export_contains_data(): void
     {
-        $expenses = $this->getSampleExpenses();
+        $this->seedExpenses();
 
-        // Simulate CSV generation to a temp file
-        $tempFile = tempnam(sys_get_temp_dir(), 'csv_test_');
-        $output = fopen($tempFile, 'w');
-
-        // UTF-8 BOM
-        fwrite($output, "\xEF\xBB\xBF");
-
-        // Header row
-        fputcsv($output, ['Date', 'Description', 'Category', 'Vendor', 'Type', 'Amount', 'Report', 'Notes']);
-
-        foreach ($expenses as $row) {
-            fputcsv($output, [
-                $row['expense_date'] ?? '',
-                $row['description'] ?? '',
-                $row['category_name'] ?? '',
-                $row['vendor'] ?? '',
-                $row['type'] ?? 'debit',
-                number_format((float) ($row['amount'] ?? 0), 2, '.', ''),
-                $row['report_title'] ?? '',
-                $row['notes'] ?? '',
-            ]);
-        }
-        fclose($output);
-
-        $content = file_get_contents($tempFile);
-        unlink($tempFile);
-
-        // Verify BOM
-        $this->assertStringStartsWith("\xEF\xBB\xBF", $content);
-
-        // Verify header
-        $this->assertStringContainsString('Date,Description,Category,Vendor,Type,Amount,Report,Notes', $content);
-
-        // Verify data rows
-        $this->assertStringContainsString('Office Supplies', $content);
-        $this->assertStringContainsString('45.99', $content);
-        $this->assertStringContainsString('Client Refund', $content);
-        $this->assertStringContainsString('200.00', $content);
-        $this->assertStringContainsString('March Report', $content);
+        $response = $this->get('/export/csv');
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('Printer Paper', $content);
+        $this->assertStringContainsString('Client Payment', $content);
     }
 
-    public function test_quickbooks_iif_export_format(): void
+    public function test_quickbooks_iif_export(): void
     {
-        $expenses = $this->getSampleExpenses();
+        $this->seedExpenses();
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'iif_test_');
-        $output = fopen($tempFile, 'w');
-
-        // IIF header rows
-        fwrite($output, "!TRNS\tTRNSTYPE\tDATE\tACCNT\tAMOUNT\tMEMO\tNAME\n");
-        fwrite($output, "!SPL\tTRNSTYPE\tDATE\tACCNT\tAMOUNT\tMEMO\tNAME\n");
-        fwrite($output, "!ENDTRNS\n");
-
-        foreach ($expenses as $row) {
-            $date = date('m/d/Y', strtotime($row['expense_date']));
-            $categoryAcct = 'Expenses:' . ($row['category_name'] ?: 'Uncategorized');
-            $amount = (float) ($row['amount'] ?? 0);
-            $memo = str_replace("\t", ' ', $row['description'] ?? '');
-            $vendor = str_replace("\t", ' ', $row['vendor'] ?? '');
-
-            $sign = ($row['type'] ?? 'debit') === 'debit' ? 1 : -1;
-            $expenseAmount = $amount * $sign;
-
-            fwrite($output, "TRNS\tGENERAL JOURNAL\t{$date}\t{$categoryAcct}\t" .
-                number_format($expenseAmount, 2, '.', '') . "\t{$memo}\t{$vendor}\n");
-            fwrite($output, "SPL\tGENERAL JOURNAL\t{$date}\tChecking\t" .
-                number_format(-$expenseAmount, 2, '.', '') . "\t{$memo}\t{$vendor}\n");
-            fwrite($output, "ENDTRNS\n");
-        }
-        fclose($output);
-
-        $content = file_get_contents($tempFile);
-        unlink($tempFile);
-
-        // Verify IIF headers
-        $this->assertStringContainsString("!TRNS\t", $content);
-        $this->assertStringContainsString("!SPL\t", $content);
-        $this->assertStringContainsString("!ENDTRNS", $content);
-
-        // Verify TRNS entries
-        $this->assertStringContainsString("TRNS\tGENERAL JOURNAL\t03/15/2026\tExpenses:Supplies\t45.99", $content);
-        $this->assertStringContainsString("SPL\tGENERAL JOURNAL\t03/15/2026\tChecking\t-45.99", $content);
-
-        // Credit should have negative amount on expense line
-        $this->assertStringContainsString("TRNS\tGENERAL JOURNAL\t03/18/2026\tExpenses:Income\t-200.00", $content);
-        $this->assertStringContainsString("SPL\tGENERAL JOURNAL\t03/18/2026\tChecking\t200.00", $content);
+        $response = $this->get('/export/quickbooks');
+        $response->assertStatus(200);
+        $response->assertDownload();
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('!TRNS', $content);
+        $this->assertStringContainsString('ENDTRNS', $content);
     }
 
-    public function test_ical_export_format(): void
+    public function test_ical_export(): void
     {
-        $expenses = $this->getSampleExpenses();
+        $this->seedExpenses();
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'ics_test_');
-        $output = fopen($tempFile, 'w');
+        $response = $this->get('/export/calendar');
+        $response->assertStatus(200);
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('BEGIN:VCALENDAR', $content);
+        $this->assertStringContainsString('BEGIN:VEVENT', $content);
+    }
 
-        fwrite($output, "BEGIN:VCALENDAR\r\n");
-        fwrite($output, "VERSION:2.0\r\n");
-        fwrite($output, "PRODID:-//MyExpenses//Expense Export//EN\r\n");
-        fwrite($output, "CALSCALE:GREGORIAN\r\n");
-        fwrite($output, "METHOD:PUBLISH\r\n");
+    public function test_ofx_export(): void
+    {
+        $this->seedExpenses();
 
-        foreach ($expenses as $row) {
-            $dtDate = date('Ymd', strtotime($row['expense_date']));
-            $uid = 'expense-' . $row['id'] . '@myexpenses';
-            $dtstamp = gmdate('Ymd\THis\Z');
-            $amount = number_format((float) ($row['amount'] ?? 0), 2);
-            $type = ucfirst($row['type'] ?? 'debit');
-            $description = $row['description'] ?? '';
+        $response = $this->get('/export/ofx');
+        $response->assertStatus(200);
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('OFXHEADER:100', $content);
+        $this->assertStringContainsString('<STMTTRN>', $content);
+        $this->assertStringContainsString('Printer Paper', $content);
+    }
 
-            $summary = "{$type}: \${$amount} - {$description}";
+    public function test_qfx_export(): void
+    {
+        $this->seedExpenses();
 
-            fwrite($output, "BEGIN:VEVENT\r\n");
-            fwrite($output, "UID:{$uid}\r\n");
-            fwrite($output, "DTSTAMP:{$dtstamp}\r\n");
-            fwrite($output, "DTSTART;VALUE=DATE:{$dtDate}\r\n");
-            fwrite($output, "DTEND;VALUE=DATE:{$dtDate}\r\n");
-            fwrite($output, "SUMMARY:{$summary}\r\n");
-            fwrite($output, "END:VEVENT\r\n");
-        }
+        $response = $this->get('/export/qfx');
+        $response->assertStatus(200);
+        $response->assertDownload();
+    }
 
-        fwrite($output, "END:VCALENDAR\r\n");
-        fclose($output);
+    public function test_qbo_export(): void
+    {
+        $this->seedExpenses();
 
-        $content = file_get_contents($tempFile);
-        unlink($tempFile);
+        $response = $this->get('/export/qbo');
+        $response->assertStatus(200);
+        $response->assertDownload();
+    }
 
-        // Verify iCal structure
-        $this->assertStringContainsString("BEGIN:VCALENDAR", $content);
-        $this->assertStringContainsString("VERSION:2.0", $content);
-        $this->assertStringContainsString("PRODID:-//MyExpenses//Expense Export//EN", $content);
-        $this->assertStringContainsString("END:VCALENDAR", $content);
+    public function test_ofx_export_debit_has_negative_amount(): void
+    {
+        $this->seedExpenses();
 
-        // Verify events
-        $this->assertStringContainsString("BEGIN:VEVENT", $content);
-        $this->assertStringContainsString("END:VEVENT", $content);
-        $this->assertStringContainsString("DTSTART;VALUE=DATE:20260315", $content);
-        $this->assertStringContainsString("SUMMARY:Debit: \$45.99 - Office Supplies", $content);
-        $this->assertStringContainsString("SUMMARY:Credit: \$200.00 - Client Refund", $content);
-        $this->assertStringContainsString("UID:expense-1@myexpenses", $content);
+        $response = $this->get('/export/ofx');
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('<TRNAMT>-45.50', $content);
+    }
+
+    public function test_ofx_export_credit_has_positive_amount(): void
+    {
+        $this->seedExpenses();
+
+        $response = $this->get('/export/ofx');
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('<TRNAMT>1500.00', $content);
     }
 }

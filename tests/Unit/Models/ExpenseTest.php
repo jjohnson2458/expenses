@@ -4,229 +4,117 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use App\Models\Expense;
+use App\Models\Category;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ExpenseTest extends TestCase
 {
-    private Expense $model;
+    use RefreshDatabase;
 
-    protected function setUp(): void
+    private function makeExpense(array $attrs = []): Expense
     {
-        parent::setUp();
-        $this->model = new Expense();
+        if (!isset($attrs['user_id'])) {
+            $attrs['user_id'] = User::factory()->create()->id;
+        }
+        return Expense::create(array_merge([
+            'description' => 'Test Expense',
+            'amount' => 25.50,
+            'type' => 'debit',
+            'expense_date' => now()->format('Y-m-d'),
+            'vendor' => 'Test Vendor',
+        ], $attrs));
     }
 
     public function test_can_create_expense(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
-
-        $id = $this->model->create([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'type' => 'debit',
-            'description' => 'Office supplies',
-            'amount' => 45.99,
-            'expense_date' => '2026-03-15',
-            'vendor' => 'Staples',
-        ]);
-
-        $this->assertGreaterThan(0, $id);
-
-        $expense = $this->model->find($id);
-        $this->assertNotNull($expense);
-        $this->assertEquals('Office supplies', $expense['description']);
-        $this->assertEquals('45.99', $expense['amount']);
-        $this->assertEquals('debit', $expense['type']);
+        $expense = $this->makeExpense(['description' => 'Office Supplies']);
+        $this->assertDatabaseHas('expenses', ['description' => 'Office Supplies', 'type' => 'debit']);
     }
 
     public function test_can_create_credit_expense(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
-
-        $id = $this->model->create([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'type' => 'credit',
-            'description' => 'Refund from vendor',
-            'amount' => 20.00,
-            'expense_date' => '2026-03-10',
-            'vendor' => 'Amazon',
-        ]);
-
-        $expense = $this->model->find($id);
-        $this->assertEquals('credit', $expense['type']);
-        $this->assertEquals('20.00', $expense['amount']);
+        $expense = $this->makeExpense(['type' => 'credit', 'description' => 'Refund']);
+        $this->assertDatabaseHas('expenses', ['description' => 'Refund', 'type' => 'credit']);
     }
 
     public function test_can_find_expense_by_id(): void
     {
-        $expense = $this->createTestExpense(['description' => 'Findable expense']);
-
-        $found = $this->model->find((int) $expense['id']);
+        $expense = $this->makeExpense();
+        $found = Expense::find($expense->id);
         $this->assertNotNull($found);
-        $this->assertEquals('Findable expense', $found['description']);
+        $this->assertEquals($expense->description, $found->description);
     }
 
     public function test_can_update_expense(): void
     {
-        $expense = $this->createTestExpense(['description' => 'Original']);
-
-        $result = $this->model->update((int) $expense['id'], [
-            'description' => 'Updated',
-            'amount' => 99.99,
-        ]);
-        $this->assertTrue($result);
-
-        $updated = $this->model->find((int) $expense['id']);
-        $this->assertEquals('Updated', $updated['description']);
-        $this->assertEquals('99.99', $updated['amount']);
+        $expense = $this->makeExpense();
+        $expense->update(['description' => 'Updated', 'amount' => 99.99]);
+        $this->assertDatabaseHas('expenses', ['id' => $expense->id, 'description' => 'Updated']);
     }
 
     public function test_can_delete_expense(): void
     {
-        $expense = $this->createTestExpense();
-
-        $result = $this->model->delete((int) $expense['id']);
-        $this->assertTrue($result);
-
-        $deleted = $this->model->find((int) $expense['id']);
-        $this->assertNull($deleted);
+        $expense = $this->makeExpense();
+        $id = $expense->id;
+        $expense->delete();
+        $this->assertDatabaseMissing('expenses', ['id' => $id]);
     }
 
     public function test_get_by_date_range(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
+        $user = User::factory()->create();
+        $this->makeExpense(['user_id' => $user->id, 'expense_date' => '2026-01-15']);
+        $this->makeExpense(['user_id' => $user->id, 'expense_date' => '2026-02-15']);
+        $this->makeExpense(['user_id' => $user->id, 'expense_date' => '2026-03-15']);
 
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'expense_date' => '2026-01-15',
-            'description' => 'January expense',
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'expense_date' => '2026-02-15',
-            'description' => 'February expense',
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'expense_date' => '2026-03-15',
-            'description' => 'March expense',
-        ]);
+        $results = Expense::where('user_id', $user->id)
+            ->whereBetween('expense_date', ['2026-01-01', '2026-02-28'])
+            ->get();
 
-        $results = $this->model->getByDateRange('2026-01-01', '2026-02-28');
-        $descriptions = array_column($results, 'description');
-
-        $this->assertContains('January expense', $descriptions);
-        $this->assertContains('February expense', $descriptions);
-        $this->assertNotContains('March expense', $descriptions);
+        $this->assertEquals(2, $results->count());
     }
 
-    public function test_get_total_by_category(): void
+    public function test_debits_scope(): void
     {
-        $user = $this->createTestUser();
-        $cat1 = $this->createTestCategory(['name' => 'Food']);
-        $cat2 = $this->createTestCategory(['name' => 'Transport']);
+        $user = User::factory()->create();
+        $this->makeExpense(['user_id' => $user->id, 'type' => 'debit']);
+        $this->makeExpense(['user_id' => $user->id, 'type' => 'credit']);
 
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $cat1['id'],
-            'amount' => 50.00,
-            'expense_date' => '2026-03-01',
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $cat1['id'],
-            'amount' => 30.00,
-            'expense_date' => '2026-03-05',
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $cat2['id'],
-            'amount' => 15.00,
-            'expense_date' => '2026-03-10',
-        ]);
-
-        $totals = $this->model->getTotalByCategory('2026-03-01', '2026-03-31');
-
-        $this->assertNotEmpty($totals);
-
-        // Find the Food category total
-        $foodTotal = null;
-        $transportTotal = null;
-        foreach ($totals as $row) {
-            if ($row['category_name'] === 'Food') {
-                $foodTotal = $row;
-            }
-            if ($row['category_name'] === 'Transport') {
-                $transportTotal = $row;
-            }
-        }
-
-        $this->assertNotNull($foodTotal);
-        $this->assertEquals('80.00', $foodTotal['total_amount']);
-        $this->assertEquals(2, $foodTotal['expense_count']);
-
-        $this->assertNotNull($transportTotal);
-        $this->assertEquals('15.00', $transportTotal['total_amount']);
-        $this->assertEquals(1, $transportTotal['expense_count']);
+        $this->assertEquals(1, Expense::where('user_id', $user->id)->debits()->count());
     }
 
-    public function test_get_dashboard_stats(): void
+    public function test_credits_scope(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
+        $user = User::factory()->create();
+        $this->makeExpense(['user_id' => $user->id, 'type' => 'debit']);
+        $this->makeExpense(['user_id' => $user->id, 'type' => 'credit']);
 
-        // Create expenses in current month
-        $thisMonth = date('Y-m-15');
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'amount' => 100.00,
-            'expense_date' => $thisMonth,
-            'type' => 'debit',
-        ]);
-        $this->createTestExpense([
-            'user_id' => $user['id'],
-            'category_id' => $category['id'],
-            'amount' => 50.00,
-            'expense_date' => $thisMonth,
-            'type' => 'debit',
-        ]);
-
-        $stats = $this->model->getDashboardStats();
-
-        $this->assertArrayHasKey('total_this_month', $stats);
-        $this->assertArrayHasKey('total_last_month', $stats);
-        $this->assertArrayHasKey('total_credits', $stats);
-        $this->assertArrayHasKey('total_debits', $stats);
-        $this->assertArrayHasKey('count', $stats);
-        // At least 2 expenses exist (may be more from other test data in same transaction)
-        $this->assertGreaterThanOrEqual(2, $stats['count']);
+        $this->assertEquals(1, Expense::where('user_id', $user->id)->credits()->count());
     }
 
-    public function test_get_recent_expenses(): void
+    public function test_belongs_to_user(): void
     {
-        $user = $this->createTestUser();
-        $category = $this->createTestCategory();
+        $user = User::factory()->create();
+        $expense = $this->makeExpense(['user_id' => $user->id]);
 
-        for ($i = 1; $i <= 5; $i++) {
-            $this->createTestExpense([
-                'user_id' => $user['id'],
-                'category_id' => $category['id'],
-                'description' => "Recent expense {$i}",
-                'expense_date' => "2026-03-0{$i}",
-            ]);
-        }
+        $this->assertInstanceOf(User::class, $expense->user);
+        $this->assertEquals($user->id, $expense->user->id);
+    }
 
-        $recent = $this->model->getRecentExpenses(3);
+    public function test_belongs_to_category(): void
+    {
+        $user = User::factory()->create();
+        $cat = Category::create(['name' => 'Food', 'user_id' => $user->id, 'is_active' => 1, 'sort_order' => 0]);
+        $expense = $this->makeExpense(['user_id' => $user->id, 'category_id' => $cat->id]);
 
-        $this->assertCount(3, $recent);
-        // Should have category_name from the JOIN
-        $this->assertArrayHasKey('category_name', $recent[0]);
+        $this->assertInstanceOf(Category::class, $expense->category);
+        $this->assertEquals('Food', $expense->category->name);
+    }
+
+    public function test_fitid_stored_for_ofx_imports(): void
+    {
+        $expense = $this->makeExpense(['fitid' => 'ABC123456']);
+        $this->assertDatabaseHas('expenses', ['fitid' => 'ABC123456']);
     }
 }

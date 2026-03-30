@@ -1,0 +1,759 @@
+{
+    "project": "claude_expenses",
+    "framework": "laravel",
+    "route_file": "web.php",
+    "generated": "2026-03-30 20:40:21",
+    "total": 75,
+    "routes": [
+        {
+            "method": "GET",
+            "path": "/",
+            "auth": "none",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Welcome / Splash",
+            "line": 20
+        },
+        {
+            "method": "GET",
+            "path": "/login",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Auth",
+            "line": 28
+        },
+        {
+            "method": "POST",
+            "path": "/login",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Auth",
+            "line": 29
+        },
+        {
+            "method": "GET",
+            "path": "/register",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Auth",
+            "line": 30
+        },
+        {
+            "method": "POST",
+            "path": "/register",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Auth",
+            "line": 31
+        },
+        {
+            "method": "GET",
+            "path": "/forgot-password",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Auth",
+            "line": 32
+        },
+        {
+            "method": "POST",
+            "path": "/forgot-password",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Auth",
+            "line": 33
+        },
+        {
+            "method": "GET",
+            "path": "/reset-password",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Auth",
+            "line": 34
+        },
+        {
+            "method": "POST",
+            "path": "/reset-password",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Auth",
+            "line": 35
+        },
+        {
+            "method": "POST",
+            "path": "/demo",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Auth",
+            "line": 36
+        },
+        {
+            "method": "GET",
+            "path": "/logout",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Auth",
+            "line": 37
+        },
+        {
+            "method": "POST",
+            "path": "/logout",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Auth",
+            "line": 37
+        },
+        {
+            "method": "GET",
+            "path": "/terms",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Legal/Static Pages (no auth required)",
+            "line": 40
+        },
+        {
+            "method": "GET",
+            "path": "/privacy",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Legal/Static Pages (no auth required)",
+            "line": 41
+        },
+        {
+            "method": "GET",
+            "path": "/demo",
+            "auth": "none",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Public demo preview",
+            "line": 44
+        },
+        {
+            "method": "POST",
+            "path": "/stripe/webhook",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Stripe Webhook",
+            "line": 49
+        },
+        {
+            "method": "GET",
+            "path": "/lang/{locale}",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Language",
+            "line": 53
+        },
+        {
+            "method": "GET",
+            "path": "/dashboard",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Dashboard",
+            "line": 58
+        },
+        {
+            "method": "GET",
+            "path": "/categories",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Categories",
+            "line": 61
+        },
+        {
+            "method": "GET",
+            "path": "/categories/create",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Categories",
+            "line": 62
+        },
+        {
+            "method": "POST",
+            "path": "/categories",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Categories",
+            "line": 63
+        },
+        {
+            "method": "GET",
+            "path": "/categories/{id}/edit",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Categories",
+            "line": 64
+        },
+        {
+            "method": "POST",
+            "path": "/categories/{id}",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Categories",
+            "line": 65
+        },
+        {
+            "method": "POST",
+            "path": "/categories/{id}/delete",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Categories",
+            "line": 66
+        },
+        {
+            "method": "POST",
+            "path": "/categories/reorder",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Categories",
+            "line": 67
+        },
+        {
+            "method": "GET",
+            "path": "/expenses",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Expenses",
+            "line": 70
+        },
+        {
+            "method": "GET",
+            "path": "/expenses/create",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Expenses",
+            "line": 71
+        },
+        {
+            "method": "POST",
+            "path": "/expenses",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Expenses",
+            "line": 72
+        },
+        {
+            "method": "GET",
+            "path": "/expenses/{id}/edit",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Expenses",
+            "line": 73
+        },
+        {
+            "method": "POST",
+            "path": "/expenses/{id}",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Expenses",
+            "line": 74
+        },
+        {
+            "method": "POST",
+            "path": "/expenses/{id}/delete",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Expenses",
+            "line": 75
+        },
+        {
+            "method": "POST",
+            "path": "/expenses/voice",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Expenses",
+            "line": 76
+        },
+        {
+            "method": "POST",
+            "path": "/expenses/scan",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Expenses",
+            "line": 77
+        },
+        {
+            "method": "GET",
+            "path": "/reports",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Reports",
+            "line": 80
+        },
+        {
+            "method": "GET",
+            "path": "/reports/create",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Reports",
+            "line": 81
+        },
+        {
+            "method": "POST",
+            "path": "/reports",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 82
+        },
+        {
+            "method": "GET",
+            "path": "/reports/{id}",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 83
+        },
+        {
+            "method": "GET",
+            "path": "/reports/{id}/edit",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 84
+        },
+        {
+            "method": "POST",
+            "path": "/reports/{id}",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 85
+        },
+        {
+            "method": "POST",
+            "path": "/reports/{id}/delete",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 86
+        },
+        {
+            "method": "POST",
+            "path": "/reports/{id}/add-expense",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 87
+        },
+        {
+            "method": "POST",
+            "path": "/reports/{id}/remove-expense",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 88
+        },
+        {
+            "method": "GET",
+            "path": "/reports/{id}/print",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Reports",
+            "line": 89
+        },
+        {
+            "method": "GET",
+            "path": "/recurring",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Recurring Expenses",
+            "line": 92
+        },
+        {
+            "method": "GET",
+            "path": "/recurring/create",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Recurring Expenses",
+            "line": 93
+        },
+        {
+            "method": "POST",
+            "path": "/recurring",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Recurring Expenses",
+            "line": 94
+        },
+        {
+            "method": "GET",
+            "path": "/recurring/{id}/edit",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Recurring Expenses",
+            "line": 95
+        },
+        {
+            "method": "POST",
+            "path": "/recurring/{id}",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Recurring Expenses",
+            "line": 96
+        },
+        {
+            "method": "POST",
+            "path": "/recurring/{id}/delete",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Recurring Expenses",
+            "line": 97
+        },
+        {
+            "method": "POST",
+            "path": "/recurring/process",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Recurring Expenses",
+            "line": 98
+        },
+        {
+            "method": "GET",
+            "path": "/export/csv",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Export",
+            "line": 101
+        },
+        {
+            "method": "GET",
+            "path": "/export/quickbooks",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Export",
+            "line": 102
+        },
+        {
+            "method": "GET",
+            "path": "/export/calendar",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Export",
+            "line": 103
+        },
+        {
+            "method": "GET",
+            "path": "/export/ofx",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Export",
+            "line": 104
+        },
+        {
+            "method": "GET",
+            "path": "/export/qfx",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Export",
+            "line": 105
+        },
+        {
+            "method": "GET",
+            "path": "/export/qbo",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Export",
+            "line": 106
+        },
+        {
+            "method": "GET",
+            "path": "/export/report/{id}/csv",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Export",
+            "line": 107
+        },
+        {
+            "method": "GET",
+            "path": "/import",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Import",
+            "line": 110
+        },
+        {
+            "method": "POST",
+            "path": "/import",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Import",
+            "line": 111
+        },
+        {
+            "method": "GET",
+            "path": "/tax/profile",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Import",
+            "line": 114
+        },
+        {
+            "method": "POST",
+            "path": "/tax/profile",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Import",
+            "line": 115
+        },
+        {
+            "method": "GET",
+            "path": "/tax/mileage",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Import",
+            "line": 116
+        },
+        {
+            "method": "POST",
+            "path": "/tax/mileage",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Import",
+            "line": 117
+        },
+        {
+            "method": "POST",
+            "path": "/tax/mileage/{id}/delete",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Import",
+            "line": 118
+        },
+        {
+            "method": "GET",
+            "path": "/tax/summary",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Import",
+            "line": 119
+        },
+        {
+            "method": "GET",
+            "path": "/billing",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Billing",
+            "line": 122
+        },
+        {
+            "method": "POST",
+            "path": "/billing/subscribe",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Billing",
+            "line": 123
+        },
+        {
+            "method": "POST",
+            "path": "/billing/change",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Billing",
+            "line": 124
+        },
+        {
+            "method": "POST",
+            "path": "/billing/cancel",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Billing",
+            "line": 125
+        },
+        {
+            "method": "POST",
+            "path": "/billing/resume",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Billing",
+            "line": 126
+        },
+        {
+            "method": "POST",
+            "path": "/billing/portal",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Billing",
+            "line": 127
+        },
+        {
+            "method": "GET",
+            "path": "/settings",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Settings",
+            "line": 130
+        },
+        {
+            "method": "POST",
+            "path": "/settings",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Settings",
+            "line": 131
+        },
+        {
+            "method": "GET",
+            "path": "/admin/errors",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": false,
+            "section": "Admin",
+            "line": 134
+        },
+        {
+            "method": "POST",
+            "path": "/admin/errors/clear",
+            "auth": "user",
+            "role": null,
+            "expected_status": 200,
+            "skip": true,
+            "section": "Admin",
+            "line": 135
+        }
+    ]
+}

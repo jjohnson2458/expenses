@@ -52,9 +52,8 @@
                             <a href="{{ url('/categories/' . ($category->id ?? $category['id']) . '/edit') }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form action="{{ url('/categories/' . ($category->id ?? $category['id'])) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this category?');">
+                            <form action="{{ url('/categories/' . ($category->id ?? $category['id']) . '/delete') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this category?');">
                                 @csrf
-                                @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>

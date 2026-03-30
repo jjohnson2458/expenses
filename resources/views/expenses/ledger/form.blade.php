@@ -50,9 +50,6 @@
             <div class="card-body">
                 <form method="POST" action="{{ isset($expense) ? url('/expenses/' . $expense['id']) : url('/expenses') }}" enctype="multipart/form-data">
                     @csrf
-                    @if(isset($expense))
-                        @method('PUT')
-                    @endif
 
                     {{-- Type --}}
                     <div class="mb-3">

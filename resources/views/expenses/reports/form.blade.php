@@ -15,9 +15,6 @@
             <div class="card-body">
                 <form method="POST" action="{{ isset($report) ? url('/reports/' . $report['id']) : url('/reports') }}">
                     @csrf
-                    @if(isset($report))
-                        @method('PUT')
-                    @endif
 
                     {{-- Title --}}
                     <div class="mb-3">

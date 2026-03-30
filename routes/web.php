@@ -40,6 +40,11 @@ Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->nam
 Route::get('/terms', [PageController::class, 'terms']);
 Route::get('/privacy', [PageController::class, 'privacy']);
 
+// Public demo preview
+Route::get('/demo', function () {
+    return view('demo');
+})->name('demo.preview');
+
 // Stripe Webhook
 Route::post('/stripe/webhook', [\Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook'])
     ->name('cashier.webhook');
@@ -96,6 +101,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/export/csv', [ExportController::class, 'csv']);
     Route::get('/export/quickbooks', [ExportController::class, 'quickbooks']);
     Route::get('/export/calendar', [ExportController::class, 'googleCalendar']);
+    Route::get('/export/ofx', [ExportController::class, 'ofx']);
+    Route::get('/export/qfx', [ExportController::class, 'qfx']);
+    Route::get('/export/qbo', [ExportController::class, 'qbo']);
     Route::get('/export/report/{id}/csv', [ExportController::class, 'reportCsv']);
 
     // Import

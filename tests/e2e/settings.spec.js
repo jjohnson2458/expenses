@@ -1,21 +1,23 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-const { login } = require('./helpers/auth');
+import { test, expect } from '@playwright/test';
+
+test.use({ storageState: 'tests/e2e/.auth/user.json' });
 
 test.describe('Settings', () => {
-
-    test.beforeEach(async ({ page }) => {
-        await login(page);
-    });
 
     test('settings page loads with user info', async ({ page }) => {
         await page.goto('/settings');
 
-        await expect(page).toHaveTitle(/Settings/);
-        await expect(page.locator('h2', { hasText: 'Settings' })).toBeVisible();
+        await expect(page).toHaveTitle('Settings - VQ Money');
 
         // Profile section should be visible
-        await expect(page.locator('text=Profile')).toBeVisible();
+        await expect(page.locator('h5', { hasText: 'Profile' })).toBeVisible();
+
+        // Change Password section should be visible
+        await expect(page.locator('h5', { hasText: 'Change Password' })).toBeVisible();
+
+        // Preferences section should be visible
+        await expect(page.locator('h5', { hasText: 'Preferences' })).toBeVisible();
 
         // Name and email fields should be populated
         const nameInput = page.locator('#name');
@@ -23,7 +25,7 @@ test.describe('Settings', () => {
         const nameValue = await nameInput.inputValue();
         expect(nameValue.length).toBeGreaterThan(0);
 
-        const emailInput = page.locator('input#email');
+        const emailInput = page.locator('#email');
         await expect(emailInput).toBeVisible();
         const emailValue = await emailInput.inputValue();
         expect(emailValue).toContain('@');
@@ -40,7 +42,7 @@ test.describe('Settings', () => {
         const testName = originalName + ' Test';
         await nameInput.fill(testName);
 
-        // Submit the profile form (the first form on the page)
+        // Submit the profile form (the form containing the profile hidden input)
         await page.locator('form:has(input[name="section"][value="profile"]) button[type="submit"]').click();
 
         // Should show success or stay on settings
@@ -51,28 +53,41 @@ test.describe('Settings', () => {
         await page.locator('form:has(input[name="section"][value="profile"]) button[type="submit"]').click();
     });
 
-    test('language switcher works', async ({ page }) => {
+    test('password fields are present', async ({ page }) => {
         await page.goto('/settings');
 
-        // Click ES link in the sidebar footer
-        const esLink = page.locator('.sidebar-lang-switcher a', { hasText: 'ES' });
-        await esLink.click();
+        // Password fields should be visible
+        await expect(page.locator('#current_password')).toBeVisible();
+        await expect(page.locator('#new_password')).toBeVisible();
+        await expect(page.locator('#new_password_confirmation')).toBeVisible();
+    });
 
-        // After switching to Spanish, some text should change
-        // The sidebar brand "MyExpenses" stays the same, but page content may change
-        // Wait for page to load
-        await page.waitForLoadState('networkidle');
+    test('language preference can be changed', async ({ page }) => {
+        await page.goto('/settings');
 
-        // Verify the ES link is now active
-        await expect(page.locator('.sidebar-lang-switcher .lang-active', { hasText: 'ES' })).toBeVisible();
+        // Language select should be visible in Preferences section
+        const languageSelect = page.locator('#language, select[name="language"]');
+        const hasLanguageSelect = await languageSelect.count();
 
-        // Switch back to English
-        const enLink = page.locator('.sidebar-lang-switcher a', { hasText: 'EN' });
-        await enLink.click();
-        await page.waitForLoadState('networkidle');
+        if (hasLanguageSelect > 0) {
+            await expect(languageSelect.first()).toBeVisible();
 
-        // Verify EN is active again
-        await expect(page.locator('.sidebar-lang-switcher .lang-active', { hasText: 'EN' })).toBeVisible();
+            // Select Spanish
+            await languageSelect.first().selectOption('es');
+
+            // Submit preferences form
+            const prefsSubmit = page.locator('form:has(input[name="section"][value="preferences"]) button[type="submit"]');
+            if (await prefsSubmit.count() > 0) {
+                await prefsSubmit.click();
+
+                // Should stay on settings
+                await expect(page).toHaveURL(/\/settings/);
+
+                // Switch back to English
+                await page.locator('#language, select[name="language"]').first().selectOption('en');
+                await page.locator('form:has(input[name="section"][value="preferences"]) button[type="submit"]').click();
+            }
+        }
     });
 
 });

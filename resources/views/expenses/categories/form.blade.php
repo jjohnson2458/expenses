@@ -15,9 +15,6 @@
             <div class="card-body">
                 <form method="POST" action="{{ isset($category) ? url('/categories/' . $category['id']) : url('/categories') }}">
                     @csrf
-                    @if(isset($category))
-                        @method('PUT')
-                    @endif
 
                     {{-- Name (EN) --}}
                     <div class="mb-3">

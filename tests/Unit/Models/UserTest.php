@@ -4,68 +4,53 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class UserTest extends TestCase
 {
-    private User $model;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->model = new User();
-    }
+    use RefreshDatabase;
 
     public function test_can_create_user(): void
     {
-        $id = $this->model->create([
+        $user = User::factory()->create([
             'name' => 'John Doe',
-            'email' => 'john_' . uniqid() . '@example.com',
-            'password' => password_hash('secret123', PASSWORD_DEFAULT),
-            'role' => 'user',
+            'email' => 'john@test.com',
         ]);
 
-        $this->assertGreaterThan(0, $id);
-
-        $user = $this->model->find($id);
-        $this->assertNotNull($user);
-        $this->assertEquals('John Doe', $user['name']);
-        $this->assertEquals('user', $user['role']);
+        $this->assertDatabaseHas('users', ['email' => 'john@test.com', 'name' => 'John Doe']);
     }
 
     public function test_find_by_email(): void
     {
-        $email = 'findme_' . uniqid() . '@example.com';
-        $this->createTestUser(['name' => 'Findable', 'email' => $email]);
+        $user = User::factory()->create(['email' => 'find@test.com']);
 
-        $found = $this->model->findByEmail($email);
+        $found = User::where('email', 'find@test.com')->first();
         $this->assertNotNull($found);
-        $this->assertEquals('Findable', $found['name']);
-        $this->assertEquals($email, $found['email']);
+        $this->assertEquals($user->id, $found->id);
     }
 
     public function test_find_by_email_returns_null_for_unknown(): void
     {
-        $result = $this->model->findByEmail('nonexistent_' . uniqid() . '@example.com');
-        $this->assertNull($result);
+        $found = User::where('email', 'nonexistent@test.com')->first();
+        $this->assertNull($found);
     }
 
     public function test_verify_password(): void
     {
-        $hash = password_hash('correctpassword', PASSWORD_DEFAULT);
+        $user = User::factory()->create(['password' => 'secret123']);
 
-        $this->assertTrue($this->model->verifyPassword('correctpassword', $hash));
-        $this->assertFalse($this->model->verifyPassword('wrongpassword', $hash));
+        $this->assertTrue(\Hash::check('secret123', $user->password));
+        $this->assertFalse(\Hash::check('wrongpassword', $user->password));
     }
 
     public function test_update_password(): void
     {
-        $user = $this->createTestUser();
+        $user = User::factory()->create(['password' => 'oldpass']);
 
-        $result = $this->model->updatePassword((int) $user['id'], 'newpassword456');
-        $this->assertTrue($result);
+        $user->update(['password' => 'newpass']);
+        $user->refresh();
 
-        $updated = $this->model->find((int) $user['id']);
-        $this->assertTrue(password_verify('newpassword456', $updated['password']));
-        $this->assertFalse(password_verify('password123', $updated['password']));
+        $this->assertTrue(\Hash::check('newpass', $user->password));
+        $this->assertFalse(\Hash::check('oldpass', $user->password));
     }
 }

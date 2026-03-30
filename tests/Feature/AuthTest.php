@@ -4,93 +4,61 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AuthTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_login_page_loads(): void
     {
-        // Verify the login view file exists
-        $viewFile = VIEW_PATH . '/auth/login.php';
-        $this->assertFileExists($viewFile, 'Login view should exist');
+        $response = $this->get('/login');
+        $response->assertStatus(200);
     }
 
     public function test_login_with_valid_credentials(): void
     {
-        $email = 'auth_valid_' . uniqid() . '@test.com';
-        $password = 'securepass123';
-        $this->createTestUser([
-            'name' => 'Auth User',
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'role' => 'admin',
+        $user = User::factory()->create(['password' => 'password123']);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password123',
         ]);
 
-        // Simulate the login flow using the User model directly
-        $userModel = new User();
-        $user = $userModel->findByEmail($email);
-
-        $this->assertNotNull($user, 'User should exist in database');
-        $this->assertTrue(password_verify($password, $user['password']), 'Password should verify');
-
-        // Simulate setting session as the AuthController does
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_role'] = $user['role'];
-
-        $this->assertEquals($user['id'], $_SESSION['user_id']);
-        $this->assertEquals('Auth User', $_SESSION['user_name']);
-        $this->assertEquals($email, $_SESSION['user_email']);
-        $this->assertEquals('admin', $_SESSION['user_role']);
+        $response->assertRedirect('/dashboard');
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_login_with_invalid_credentials(): void
     {
-        $email = 'auth_invalid_' . uniqid() . '@test.com';
-        $this->createTestUser([
-            'email' => $email,
-            'password' => password_hash('realpassword', PASSWORD_DEFAULT),
+        $user = User::factory()->create(['password' => 'password123']);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'wrongpassword',
         ]);
 
-        $userModel = new User();
-        $user = $userModel->findByEmail($email);
-
-        $this->assertNotNull($user);
-        // Wrong password should fail verification
-        $this->assertFalse(password_verify('wrongpassword', $user['password']));
-
-        // Simulate what the controller does on failure: set a flash message
-        $_SESSION['flash'] = ['type' => 'danger', 'message' => 'Invalid email or password.'];
-
-        $this->assertEquals('danger', $_SESSION['flash']['type']);
-        $this->assertStringContainsString('Invalid', $_SESSION['flash']['message']);
+        $this->assertGuest();
     }
 
     public function test_logout_clears_session(): void
     {
-        // Set up an authenticated session
-        $this->actingAsAdmin();
+        $user = User::factory()->create();
+        $this->actingAs($user);
 
-        $this->assertNotEmpty($_SESSION['user_id']);
-
-        // Simulate logout (what AuthController::logout does minus headers/exit)
-        $_SESSION = [];
-
-        $this->assertEmpty($_SESSION);
-        $this->assertArrayNotHasKey('user_id', $_SESSION);
+        $response = $this->post('/logout');
+        $this->assertGuest();
     }
 
     public function test_dashboard_redirects_when_not_authenticated(): void
     {
-        // Clear any existing session
-        unset($_SESSION['user_id']);
+        $response = $this->get('/dashboard');
+        $response->assertRedirect('/login');
+    }
 
-        // The requireAuth() method checks for user_id in session
-        $this->assertEmpty($_SESSION['user_id'] ?? null);
-
-        // Verify that the controller's requireAuth check would trigger
-        // by checking the condition it uses
-        $this->assertTrue(empty($_SESSION['user_id']),
-            'Without user_id in session, requireAuth should redirect');
+    public function test_register_page_loads(): void
+    {
+        $response = $this->get('/register');
+        $response->assertStatus(200);
     }
 }

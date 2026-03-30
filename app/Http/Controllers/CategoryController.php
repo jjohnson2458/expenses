@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
@@ -29,7 +30,7 @@ class CategoryController extends Controller
             'description' => $request->description,
             'color' => $request->color ?? '#6c757d',
             'icon' => $request->icon ?? '',
-            'is_active' => $request->has('is_active') ? 1 : 0,
+            'is_active' => $request->has('active') ? 1 : 0,
             'sort_order' => (int) $request->sort_order,
         ]);
 
@@ -54,7 +55,7 @@ class CategoryController extends Controller
             'description' => $request->description,
             'color' => $request->color ?? '#6c757d',
             'icon' => $request->icon ?? '',
-            'is_active' => $request->has('is_active') ? 1 : 0,
+            'is_active' => $request->has('active') ? 1 : 0,
             'sort_order' => (int) $request->sort_order,
         ]);
 

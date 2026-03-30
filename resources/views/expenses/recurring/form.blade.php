@@ -15,9 +15,6 @@
             <div class="card-body">
                 <form method="POST" action="{{ isset($recurring) ? url('/recurring/' . $recurring['id']) : url('/recurring') }}">
                     @csrf
-                    @if(isset($recurring))
-                        @method('PUT')
-                    @endif
 
                     {{-- Type --}}
                     <div class="mb-3">

@@ -4,73 +4,63 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\Category;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class CategoryCrudTest extends TestCase
 {
-    private Category $model;
+    use RefreshDatabase;
 
-    protected function setUp(): void
+    private function authUser(): User
     {
-        parent::setUp();
-        $this->model = new Category();
-        $this->actingAsAdmin();
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        return $user;
     }
 
     public function test_can_list_categories(): void
     {
-        $this->createTestCategory(['name' => 'Travel', 'sort_order' => 1]);
-        $this->createTestCategory(['name' => 'Food', 'sort_order' => 2]);
-        $this->createTestCategory(['name' => 'Rent', 'sort_order' => 3]);
+        $user = $this->authUser();
+        Category::create(['name' => 'Food', 'is_active' => 1, 'sort_order' => 0]);
 
-        $all = $this->model->all('sort_order', 'ASC');
-
-        $names = array_column($all, 'name');
-        $this->assertContains('Travel', $names);
-        $this->assertContains('Food', $names);
-        $this->assertContains('Rent', $names);
+        $response = $this->get('/categories');
+        $response->assertStatus(200);
     }
 
     public function test_can_create_category(): void
     {
-        $id = $this->model->create([
-            'name' => 'Entertainment',
-            'description' => 'Movies, games, etc.',
-            'color' => '#ff5733',
-            'icon' => 'bi-film',
-            'sort_order' => 5,
-            'is_active' => 1,
+        $user = $this->authUser();
+
+        $response = $this->post('/categories', [
+            'name' => 'Office Supplies',
+            'color' => '#ff0000',
+            'icon' => 'bi-pencil',
         ]);
 
-        $this->assertGreaterThan(0, $id);
-
-        $category = $this->model->find($id);
-        $this->assertEquals('Entertainment', $category['name']);
-        $this->assertEquals('Movies, games, etc.', $category['description']);
-        $this->assertEquals('#ff5733', $category['color']);
+        $response->assertRedirect('/categories');
+        $this->assertDatabaseHas('expense_categories', ['name' => 'Office Supplies']);
     }
 
     public function test_can_update_category(): void
     {
-        $category = $this->createTestCategory([
-            'name' => 'Before Update',
-            'color' => '#000000',
+        $user = $this->authUser();
+        $cat = Category::create(['name' => 'Old', 'is_active' => 1, 'sort_order' => 0]);
+
+        $response = $this->post("/categories/{$cat->id}", [
+            'name' => 'New Name',
+            'color' => '#00ff00',
         ]);
 
-        $this->model->update((int) $category['id'], [
-            'name' => 'After Update',
-            'color' => '#ffffff',
-        ]);
-
-        $updated = $this->model->find((int) $category['id']);
-        $this->assertEquals('After Update', $updated['name']);
-        $this->assertEquals('#ffffff', $updated['color']);
+        $this->assertDatabaseHas('expense_categories', ['id' => $cat->id, 'name' => 'New Name']);
     }
 
     public function test_can_delete_category(): void
     {
-        $category = $this->createTestCategory(['name' => 'To Be Deleted']);
+        $user = $this->authUser();
+        $cat = Category::create(['name' => 'Delete Me', 'is_active' => 1, 'sort_order' => 0]);
 
-        $this->assertTrue($this->model->delete((int) $category['id']));
-        $this->assertNull($this->model->find((int) $category['id']));
+        $response = $this->post("/categories/{$cat->id}/delete");
+
+        $this->assertDatabaseMissing('expense_categories', ['id' => $cat->id]);
     }
 }
