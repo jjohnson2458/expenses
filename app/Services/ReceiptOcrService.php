@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ApiUsageLog;
 use App\Models\Category;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -49,8 +50,11 @@ class ReceiptOcrService
         $imageData = base64_encode(file_get_contents($fullPath));
 
         // Get categories for context
-        $categories = Category::active()->ordered()->pluck('name')->toArray();
+        $categories = Category::active()->forUser()->ordered()->pluck('name')->toArray();
         $categoryList = implode(', ', $categories);
+
+        $apiModel = 'claude-sonnet-4-20250514';
+        $startTime = microtime(true);
 
         try {
             $response = Http::withHeaders([
@@ -58,7 +62,7 @@ class ReceiptOcrService
                 'anthropic-version' => '2023-06-01',
                 'content-type' => 'application/json',
             ])->timeout(30)->post('https://api.anthropic.com/v1/messages', [
-                'model' => 'claude-sonnet-4-20250514',
+                'model' => $apiModel,
                 'max_tokens' => 1024,
                 'messages' => [
                     [
@@ -90,13 +94,41 @@ class ReceiptOcrService
                 ],
             ]);
 
+            $responseTimeMs = (int) ((microtime(true) - $startTime) * 1000);
+
             if (!$response->successful()) {
                 Log::error('ReceiptOCR: API error', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
+
+                ApiUsageLog::logUsage([
+                    'feature' => 'receipt_ocr',
+                    'model' => $apiModel,
+                    'input_tokens' => 0,
+                    'output_tokens' => 0,
+                    'response_time_ms' => $responseTimeMs,
+                    'success' => false,
+                    'error_message' => "HTTP {$response->status()}: " . substr($response->body(), 0, 500),
+                ]);
+
                 return null;
             }
+
+            // Extract usage from response
+            $usage = $response->json('usage', []);
+            $inputTokens = $usage['input_tokens'] ?? 0;
+            $outputTokens = $usage['output_tokens'] ?? 0;
+
+            ApiUsageLog::logUsage([
+                'feature' => 'receipt_ocr',
+                'model' => $apiModel,
+                'input_tokens' => $inputTokens,
+                'output_tokens' => $outputTokens,
+                'response_time_ms' => $responseTimeMs,
+                'success' => true,
+                'metadata' => ['receipt_path' => $receiptPath],
+            ]);
 
             $content = $response->json('content.0.text', '');
 
@@ -112,6 +144,18 @@ class ReceiptOcrService
             return null;
 
         } catch (\Exception $e) {
+            $responseTimeMs = (int) ((microtime(true) - $startTime) * 1000);
+
+            ApiUsageLog::logUsage([
+                'feature' => 'receipt_ocr',
+                'model' => $apiModel,
+                'input_tokens' => 0,
+                'output_tokens' => 0,
+                'response_time_ms' => $responseTimeMs,
+                'success' => false,
+                'error_message' => $e->getMessage(),
+            ]);
+
             Log::error('ReceiptOCR: Exception', ['message' => $e->getMessage()]);
             return null;
         }
@@ -122,7 +166,7 @@ class ReceiptOcrService
         // Match category name to ID
         $categoryId = null;
         if (!empty($parsed['category'])) {
-            $category = Category::active()
+            $category = Category::active()->forUser()
                 ->where('name', 'like', '%' . $parsed['category'] . '%')
                 ->first();
             $categoryId = $category?->id;

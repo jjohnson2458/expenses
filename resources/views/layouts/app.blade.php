@@ -269,6 +269,9 @@
             <a href="{{ url('/admin/errors') }}" class="nav-link {{ request()->is('admin/errors*') ? 'active' : '' }}">
                 <i class="bi bi-bug"></i> Error Log
             </a>
+            <a href="{{ url('/admin/token-usage') }}" class="nav-link {{ request()->is('admin/token-usage*') ? 'active' : '' }}">
+                <i class="bi bi-graph-up"></i> Token Usage
+            </a>
             @endif
         </div>
 

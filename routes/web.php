@@ -14,6 +14,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TaxController;
+use App\Http\Controllers\AdminTokenUsageController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -133,4 +134,5 @@ Route::middleware('auth')->group(function () {
     // Admin
     Route::get('/admin/errors', [DashboardController::class, 'errors']);
     Route::post('/admin/errors/clear', [DashboardController::class, 'clearErrors']);
+    Route::get('/admin/token-usage', [AdminTokenUsageController::class, 'index']);
 });
