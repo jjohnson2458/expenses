@@ -227,6 +227,9 @@
             <a href="{{ url('/budgets') }}" class="nav-link {{ request()->is('budgets*') ? 'active' : '' }}">
                 <i class="bi bi-piggy-bank"></i> Budgets
             </a>
+            <a href="{{ url('/anomalies') }}" class="nav-link {{ request()->is('anomalies*') ? 'active' : '' }}">
+                <i class="bi bi-shield-exclamation"></i> Anomalies
+            </a>
 
             <div class="nav-section">Tax Center</div>
             <div class="nav-submenu">

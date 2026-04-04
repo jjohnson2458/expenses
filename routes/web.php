@@ -19,6 +19,7 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\TaxPackageController;
 use App\Http\Controllers\QuarterlyEstimateController;
 use App\Http\Controllers\MonthlySummaryController;
+use App\Http\Controllers\AnomalyController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -114,6 +115,10 @@ Route::middleware('auth')->group(function () {
     // Import
     Route::get('/import', [ImportController::class, 'index']);
     Route::post('/import', [ImportController::class, 'process']);
+
+    // Anomaly Detection
+    Route::get('/anomalies', [AnomalyController::class, 'index']);
+    Route::post('/anomalies/{id}/dismiss', [AnomalyController::class, 'dismiss']);
 
     // Monthly Summary
     Route::get('/summary', [MonthlySummaryController::class, 'index']);
