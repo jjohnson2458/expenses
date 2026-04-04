@@ -52,7 +52,7 @@ class ReportController extends Controller
             ->orderByDesc('expenses.expense_date')
             ->get();
 
-        $categories = Category::active()->get();
+        $categories = Category::active()->forUser()->get();
         $categoryMap = $categories->pluck('name', 'id')->toArray();
 
         return view('expenses.reports.show', compact('report', 'linkedExpenses', 'availableExpenses', 'categoryMap'));
@@ -124,7 +124,7 @@ class ReportController extends Controller
         $report = ExpenseReport::findOrFail($id);
         $linkedExpenses = Expense::where('report_id', $id)->orderByDesc('expense_date')->get();
 
-        $categories = Category::active()->get();
+        $categories = Category::active()->forUser()->get();
         $categoryMap = $categories->pluck('name', 'id')->toArray();
 
         return view('expenses.reports.print', compact('report', 'linkedExpenses', 'categoryMap'));

@@ -25,7 +25,7 @@ class RecurringExpenseController extends Controller
 
     public function create()
     {
-        $categories = Category::active()->ordered()->get();
+        $categories = Category::active()->forUser()->ordered()->get();
 
         return view('expenses.recurring.form', ['categories' => $categories, 'recurring' => null]);
     }
@@ -46,7 +46,7 @@ class RecurringExpenseController extends Controller
     public function edit(int $id)
     {
         $recurring = RecurringExpense::findOrFail($id);
-        $categories = Category::active()->ordered()->get();
+        $categories = Category::active()->forUser()->ordered()->get();
 
         return view('expenses.recurring.form', compact('recurring', 'categories'));
     }

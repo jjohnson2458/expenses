@@ -19,7 +19,7 @@ class ExpenseController extends Controller
         $to = $request->get('to', '');
         $categoryFilter = $request->get('category', '');
 
-        $categories = Category::active()->ordered()->get();
+        $categories = Category::active()->forUser()->ordered()->get();
 
         $query = DB::table('expenses as e')
             ->leftJoin('expense_categories as c', 'e.category_id', '=', 'c.id')
@@ -75,7 +75,7 @@ class ExpenseController extends Controller
 
     public function create()
     {
-        $categories = Category::active()->ordered()->get();
+        $categories = Category::active()->forUser()->ordered()->get();
         $reports = ExpenseReport::orderBy('title', 'asc')->get();
 
         return view('expenses.ledger.form', compact('categories', 'reports'));
@@ -103,7 +103,7 @@ class ExpenseController extends Controller
     public function edit(int $id)
     {
         $expense = Expense::findOrFail($id);
-        $categories = Category::active()->ordered()->get();
+        $categories = Category::active()->forUser()->ordered()->get();
         $reports = ExpenseReport::orderBy('title', 'asc')->get();
 
         return view('expenses.ledger.form', compact('expense', 'categories', 'reports'));
@@ -200,7 +200,7 @@ class ExpenseController extends Controller
         }
 
         // Match category
-        $categories = Category::active()->get();
+        $categories = Category::active()->forUser()->get();
         $matchedCategory = null;
         $lowerText = strtolower($text);
 

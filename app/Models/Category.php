@@ -16,6 +16,7 @@ class Category extends Model
         'icon',
         'sort_order',
         'is_active',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -39,6 +40,19 @@ class Category extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order', 'asc');
+    }
+
+    /**
+     * Scope to categories visible to the given user:
+     * global (user_id IS NULL) OR owned by the user.
+     */
+    public function scopeForUser($query, ?int $userId = null)
+    {
+        $uid = $userId ?? (int) \Illuminate\Support\Facades\Auth::id();
+
+        return $query->where(function ($q) use ($uid) {
+            $q->whereNull('user_id')->orWhere('user_id', $uid);
+        });
     }
 
     public static function updateSortOrder(array $orders): void

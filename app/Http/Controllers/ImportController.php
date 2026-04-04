@@ -11,7 +11,7 @@ class ImportController extends Controller
 {
     public function index()
     {
-        $categories = Category::where('is_active', 1)->orderBy('name')->get();
+        $categories = Category::active()->forUser()->orderBy('name')->get();
         return view('import.index', compact('categories'));
     }
 
@@ -200,7 +200,7 @@ class ImportController extends Controller
         }
 
         $categoryLookup = [];
-        foreach (Category::where('is_active', 1)->get() as $cat) {
+        foreach (Category::active()->forUser()->get() as $cat) {
             $categoryLookup[strtolower(trim($cat->name))] = $cat->id;
         }
 

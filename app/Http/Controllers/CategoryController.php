@@ -10,7 +10,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::orderBy('sort_order', 'asc')->paginate(20);
+        $categories = Category::forUser()->orderBy('sort_order', 'asc')->paginate(20);
 
         return view('expenses.categories.index', compact('categories'));
     }
@@ -32,6 +32,7 @@ class CategoryController extends Controller
             'icon' => $request->icon ?? '',
             'is_active' => $request->has('active') ? 1 : 0,
             'sort_order' => (int) $request->sort_order,
+            'user_id' => Auth::id(),
         ]);
 
         return redirect('/categories')->with('flash', ['type' => 'success', 'message' => 'Category created successfully.']);
