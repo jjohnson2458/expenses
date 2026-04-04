@@ -218,6 +218,9 @@
             <a href="{{ url('/recurring') }}" class="nav-link {{ request()->is('recurring*') ? 'active' : '' }}">
                 <i class="bi bi-arrow-repeat"></i> Recurring
             </a>
+            <a href="{{ url('/summary') }}" class="nav-link {{ request()->is('summary*') ? 'active' : '' }}">
+                <i class="bi bi-bar-chart-line"></i> Monthly Summary
+            </a>
             <a href="{{ url('/import') }}" class="nav-link {{ request()->is('import*') ? 'active' : '' }}">
                 <i class="bi bi-upload"></i> Import
             </a>

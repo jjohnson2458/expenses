@@ -18,6 +18,7 @@ use App\Http\Controllers\AdminTokenUsageController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\TaxPackageController;
 use App\Http\Controllers\QuarterlyEstimateController;
+use App\Http\Controllers\MonthlySummaryController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -113,6 +114,10 @@ Route::middleware('auth')->group(function () {
     // Import
     Route::get('/import', [ImportController::class, 'index']);
     Route::post('/import', [ImportController::class, 'process']);
+
+    // Monthly Summary
+    Route::get('/summary', [MonthlySummaryController::class, 'index']);
+    Route::post('/summary/send', [MonthlySummaryController::class, 'send']);
 
     // Budgets
     Route::get('/budgets', [BudgetController::class, 'index']);
