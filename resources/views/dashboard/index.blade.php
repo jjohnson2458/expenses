@@ -281,6 +281,7 @@
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> CSV/IIF/iCal export</li>
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Bilingual (EN/ES)</li>
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Budget tracking with alerts</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Tax package generator (7 exports)</li>
                     </ul>
                 </div>
                 <div class="col-md-4">
@@ -288,7 +289,6 @@
                     <ul class="list-unstyled small">
                         <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Email-to-expense (receipts@vqmoney.com)</li>
                         <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> PDF report generation</li>
-                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Year-end tax package export</li>
                     </ul>
                 </div>
                 <div class="col-md-4">

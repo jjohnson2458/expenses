@@ -16,6 +16,7 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\AdminTokenUsageController;
 use App\Http\Controllers\BudgetController;
+use App\Http\Controllers\TaxPackageController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -125,6 +126,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/tax/mileage', [TaxController::class, 'storeMileage']);
     Route::post('/tax/mileage/{id}/delete', [TaxController::class, 'destroyMileage']);
     Route::get('/tax/summary', [TaxController::class, 'summary']);
+    Route::get('/tax/package', [TaxPackageController::class, 'index']);
+    Route::get('/tax/package/profit-loss', [TaxPackageController::class, 'downloadProfitLoss']);
+    Route::get('/tax/package/schedule-c', [TaxPackageController::class, 'downloadScheduleC']);
+    Route::get('/tax/package/category-detail', [TaxPackageController::class, 'downloadCategoryDetail']);
+    Route::get('/tax/package/mileage', [TaxPackageController::class, 'downloadMileageLog']);
+    Route::get('/tax/package/home-office', [TaxPackageController::class, 'downloadHomeOffice']);
+    Route::get('/tax/package/turbotax', [TaxPackageController::class, 'downloadTurbotax']);
+    Route::get('/tax/package/quickbooks', [TaxPackageController::class, 'downloadQuickbooks']);
 
     // Billing
     Route::get('/billing', [BillingController::class, 'index']);
