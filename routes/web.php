@@ -17,6 +17,7 @@ use App\Http\Controllers\TaxController;
 use App\Http\Controllers\AdminTokenUsageController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\TaxPackageController;
+use App\Http\Controllers\QuarterlyEstimateController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -134,6 +135,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/tax/package/home-office', [TaxPackageController::class, 'downloadHomeOffice']);
     Route::get('/tax/package/turbotax', [TaxPackageController::class, 'downloadTurbotax']);
     Route::get('/tax/package/quickbooks', [TaxPackageController::class, 'downloadQuickbooks']);
+
+    // Quarterly Estimates
+    Route::get('/tax/quarterly', [QuarterlyEstimateController::class, 'index']);
+    Route::post('/tax/quarterly/generate', [QuarterlyEstimateController::class, 'generate']);
+    Route::post('/tax/quarterly/{id}/pay', [QuarterlyEstimateController::class, 'markPaid']);
 
     // Billing
     Route::get('/billing', [BillingController::class, 'index']);

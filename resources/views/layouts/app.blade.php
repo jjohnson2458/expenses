@@ -236,6 +236,9 @@
                 <a href="{{ url('/tax/profile') }}" class="nav-link {{ request()->is('tax/profile*') ? 'active' : '' }}">
                     <i class="bi bi-building"></i> Tax Profile
                 </a>
+                <a href="{{ url('/tax/quarterly') }}" class="nav-link {{ request()->is('tax/quarterly*') ? 'active' : '' }}">
+                    <i class="bi bi-calendar-check"></i> Quarterly Estimates
+                </a>
                 <a href="{{ url('/tax/package') }}" class="nav-link {{ request()->is('tax/package*') ? 'active' : '' }}">
                     <i class="bi bi-box-seam"></i> Tax Package
                 </a>
