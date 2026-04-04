@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Budget;
 use App\Models\Expense;
 use App\Models\ErrorLog;
 use Illuminate\Support\Facades\Auth;
@@ -70,6 +71,9 @@ class DashboardController extends Controller
             return $cat;
         });
 
+        // Budget status for current month
+        $budgetSummary = Budget::summaryForMonth($userId, date('Y-m'));
+
         // Upcoming tax deadlines
         $nextDeadline = DB::table('quarterly_estimates')
             ->where('user_id', $userId)
@@ -80,7 +84,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', compact(
             'thisMonth', 'lastMonth', 'totalCredits', 'totalDebits', 'transactionCount',
-            'monthlyTotals', 'recentExpenses', 'categoryBreakdown', 'nextDeadline'
+            'monthlyTotals', 'recentExpenses', 'categoryBreakdown', 'nextDeadline', 'budgetSummary'
         ));
     }
 

@@ -15,6 +15,7 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\AdminTokenUsageController;
+use App\Http\Controllers\BudgetController;
 use Illuminate\Support\Facades\Auth;
 
 // Welcome / Splash
@@ -110,6 +111,12 @@ Route::middleware('auth')->group(function () {
     // Import
     Route::get('/import', [ImportController::class, 'index']);
     Route::post('/import', [ImportController::class, 'process']);
+
+    // Budgets
+    Route::get('/budgets', [BudgetController::class, 'index']);
+    Route::post('/budgets', [BudgetController::class, 'store']);
+    Route::post('/budgets/copy', [BudgetController::class, 'copy']);
+    Route::post('/budgets/{id}/delete', [BudgetController::class, 'destroy']);
 
     // Tax
     Route::get('/tax/profile', [TaxController::class, 'profile']);

@@ -221,6 +221,9 @@
             <a href="{{ url('/import') }}" class="nav-link {{ request()->is('import*') ? 'active' : '' }}">
                 <i class="bi bi-upload"></i> Import
             </a>
+            <a href="{{ url('/budgets') }}" class="nav-link {{ request()->is('budgets*') ? 'active' : '' }}">
+                <i class="bi bi-piggy-bank"></i> Budgets
+            </a>
 
             <div class="nav-section">Tax Center</div>
             <div class="nav-submenu">

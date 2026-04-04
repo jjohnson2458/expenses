@@ -124,6 +124,46 @@
     </a>
 </div>
 
+{{-- Budget Status Widget --}}
+@if(($budgetSummary['budgets'] ?? collect())->count() > 0)
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-piggy-bank me-2"></i>Budget Status - {{ date('F Y') }}</h5>
+        <a href="{{ url('/budgets') }}" class="btn btn-sm btn-outline-primary">Manage</a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            @foreach($budgetSummary['budgets']->take(6) as $budget)
+            @php
+                $pct = $budget->percent_used;
+                $barColor = $pct >= 100 ? 'bg-danger' : ($pct >= 90 ? 'bg-warning' : ($pct >= 75 ? 'bg-info' : 'bg-success'));
+            @endphp
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small fw-semibold">
+                        <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:{{ $budget->category->color ?? '#6c757d' }}"></span>
+                        {{ $budget->category->name ?? 'Unknown' }}
+                    </span>
+                    <span class="small {{ $pct >= 100 ? 'text-danger fw-bold' : 'text-muted' }}">
+                        ${{ number_format($budget->spent, 2) }} / ${{ number_format($budget->amount, 2) }}
+                    </span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar {{ $barColor }}" style="width: {{ min($pct, 100) }}%"></div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @if($budgetSummary['over_budget_count'] > 0)
+        <div class="alert alert-danger mt-3 mb-0 py-2 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            {{ $budgetSummary['over_budget_count'] }} {{ $budgetSummary['over_budget_count'] === 1 ? 'category is' : 'categories are' }} over budget this month.
+        </div>
+        @endif
+    </div>
+</div>
+@endif
+
 {{-- Chart --}}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-0 py-3">
@@ -240,13 +280,13 @@
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> SSL & landing page</li>
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> CSV/IIF/iCal export</li>
                         <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Bilingual (EN/ES)</li>
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> Budget tracking with alerts</li>
                     </ul>
                 </div>
                 <div class="col-md-4">
                     <h6 class="text-primary"><i class="bi bi-arrow-right-circle me-1"></i> Coming Soon</h6>
                     <ul class="list-unstyled small">
                         <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Email-to-expense (receipts@vqmoney.com)</li>
-                        <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Budget tracking with alerts</li>
                         <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> PDF report generation</li>
                         <li class="mb-1"><i class="bi bi-dash text-primary me-1"></i> Year-end tax package export</li>
                     </ul>
